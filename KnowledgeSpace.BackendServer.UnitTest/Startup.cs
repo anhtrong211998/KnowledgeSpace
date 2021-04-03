@@ -17,9 +17,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using FluentValidation.AspNetCore;
 using KnowledgeSpace.ViewModels.Validators;
-using KnowledgeSpace.BackendServer.Services;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using KnowledgeSpace.BackendServer.IdentityServer;
 
 namespace KnowledgeSpace.BackendServer
 {
@@ -46,22 +43,9 @@ namespace KnowledgeSpace.BackendServer
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<KnowledgeSpaceContext>();
 
-            var builder = services.AddIdentityServer(options =>
-            {
-                options.Events.RaiseErrorEvents = true;
-                options.Events.RaiseInformationEvents = true;
-                options.Events.RaiseFailureEvents = true;
-                options.Events.RaiseSuccessEvents = true;
-            })
-            .AddInMemoryApiResources(Config.Apis)
-            .AddInMemoryClients(Config.Clients)
-            .AddInMemoryIdentityResources(Config.Ids)
-            .AddAspNetIdentity<User>()
-            .AddDeveloperSigningCredential();
-
             services.Configure<IdentityOptions>(options =>
             {
-                // Default Lockout settings.
+                //// Default Lockout settings
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
@@ -74,38 +58,8 @@ namespace KnowledgeSpace.BackendServer
                 options.User.RequireUniqueEmail = true;
             });
 
-            services.AddAuthentication()
-               .AddLocalApi("Bearer", option =>
-               {
-                   option.ExpectedScope = "api.knowledgespace";
-               });
-
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("Bearer", policy =>
-                {
-                    policy.AddAuthenticationSchemes("Bearer");
-                    policy.RequireAuthenticatedUser();
-                });
-            });
-
-            services.AddRazorPages(options =>
-            {
-                options.Conventions.AddAreaFolderRouteModelConvention("Identity", "/Account/", model =>
-                {
-                    foreach (var selector in model.Selectors)
-                    {
-                        var attributeRouteModel = selector.AttributeRouteModel;
-                        attributeRouteModel.Order = -1;
-                        attributeRouteModel.Template = attributeRouteModel.Template.Remove(0, "Identity".Length);
-                    }
-                });
-            });
-
-            services.AddTransient<IEmailSender, EmailSenderService>();
-
             //// validator use fluent validator library
-            services.AddControllersWithViews()
+            services.AddControllers()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<RoleVmValidator>());
 
             //// 3. Add trasient to seed data
@@ -114,29 +68,10 @@ namespace KnowledgeSpace.BackendServer
             //// Swagger
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Knowledge Space API", Version = "v1" });
-
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Type = SecuritySchemeType.OAuth2,
-                    Flows = new OpenApiOAuthFlows
-                    {
-                        Implicit = new OpenApiOAuthFlow
-                        {
-                            AuthorizationUrl = new Uri("https://localhost:5000/connect/authorize"),
-                            Scopes = new Dictionary<string, string> { { "api.knowledgespace", "KnowledgeSpace API" } }
-                        },
-                    },
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-                        },
-                        new List<string>{ "api.knowledgespace" }
-                    }
+                    Title = "Knowledge Space API",
+                    Version = "v1"
                 });
             });
         }
@@ -149,13 +84,6 @@ namespace KnowledgeSpace.BackendServer
                 app.UseDeveloperExceptionPage();
             }
 
-            //// identity4
-            app.UseStaticFiles();
-
-            app.UseIdentityServer();
-
-            app.UseAuthentication();
-
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -164,8 +92,7 @@ namespace KnowledgeSpace.BackendServer
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapDefaultControllerRoute();
-                endpoints.MapRazorPages();//identity4
+                endpoints.MapControllers();
             });
 
             //// Swagger and Endpont for swagger
@@ -173,7 +100,6 @@ namespace KnowledgeSpace.BackendServer
 
             app.UseSwaggerUI(c =>
             {
-                c.OAuthClientId("swagger");
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Knowledge Space API v1");
             });
         }

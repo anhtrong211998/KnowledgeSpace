@@ -12,12 +12,15 @@ namespace KnowledgeSpace.BackendServer
     {
         public static void Main(string[] args)
         {
+            //// use serilog library includes: serilog ,serilog.sink.console, serilog.extendtion.hosting
+            
             Log.Logger = new LoggerConfiguration()
                              .Enrich.FromLogContext()
                              .WriteTo.Console()
                              .CreateLogger();
             var host = CreateHostBuilder(args).Build();
 
+            //// use dependency injection from DI
             using (var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
