@@ -7,6 +7,22 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 {
     public class User : IdentityUser
     {
+        public User()
+        {
+        }
+
+        public User(string id, string userName, string firstName, string lastName,
+            string email, string phoneNumber, DateTime dob)
+        {
+            Id = id;
+            UserName = userName;
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email;
+            PhoneNumber = phoneNumber;
+            Dob = dob;
+        }
+
         [Required(ErrorMessage = "First Name is required.")]
         [MaxLength(50, ErrorMessage = "First Name is at most 50 charactes.")]
         public string FirstName { get; set; }

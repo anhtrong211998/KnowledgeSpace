@@ -17,10 +17,14 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
 {
     public class RolesControllerTest
     {
+        #region MOCK AND CONSTRUCTOR 
         private readonly Mock<RoleManager<IdentityRole>> _mockRoleManager;
 
         private List<IdentityRole> _roleSources;
 
+        /// <summary>
+        /// CONSTRUCTOR TEST.
+        /// </summary>
         public RolesControllerTest()
         {
             var roleStore = new Mock<IRoleStore<IdentityRole>>();
@@ -34,7 +38,12 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
                                 new IdentityRole("test4")
                             };
         }
-        //// Test contructor
+
+        #endregion
+
+        /// <summary>
+        /// TEST CONSTRUCTOR CONTROLLER.
+        /// </summary>
         [Fact]
         public void ShouldCreateInstance_NotNull_Ok()
         {
@@ -42,8 +51,11 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.NotNull(rolesController);
         }
 
-        #region Test for Getall method
-        //// get success
+        #region TEST GET ALL METHOD
+        /// <summary>
+        /// GET ALL ROLES SUCCESS.
+        /// </summary>
+        /// <returns>COUNT OF LIST ROLE IS GREATER THAN 0.</returns>
         [Fact]
         public async Task GetRoles_HasData_ReturnSuccess()
         {
@@ -56,7 +68,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.True(roleVms.Count() > 0);
         }
 
-        //// get throw exception
+        /// <summary>
+        /// GET ALL ROLES RETURN EXCEPTION.
+        /// </summary>
+        /// <returns>EXCEPTION.</returns>
         [Fact]
         public async Task GetRoles_ThrowException_Failed()
         {
@@ -67,10 +82,13 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             await Assert.ThrowsAnyAsync<Exception>(async () =>
                                     await roleController.GetAll());
         }
-        #endregion Test for Getall method
+        #endregion
 
-        #region Test for GetPagin method
-        //// get with no filter success
+        #region TEST PAGINATION.
+        /// <summary>
+        /// PAGINATION WITH NO FILTER (KEYWORD IS NULL).
+        /// </summary>
+        /// <returns>TOTAL RECORD IS 4 AND TOTAL ROW IS 2.</returns>
         [Fact]
         public async Task GetRolesPagin_NotFilter_ReturnSuccess()
         {
@@ -85,7 +103,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.Equal(2, roleVms.Items.Count);
         }
 
-        //// get with filter success
+        /// <summary>
+        /// PAGINATION WITH FILTER (KEYWORD IS test3).
+        /// </summary>
+        /// <returns>TOTAL RECORDS IS 1 AND TOTAL ROWS IS SINGLE</returns>
         [Fact]
         public async Task GetRolesPagin_HasFilter_ReturnSuccess()
         {
@@ -99,7 +120,11 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.Equal(1, roleVms.TotalRecords);
             Assert.Single(roleVms.Items);
         }
-        //// get throw exception
+
+        /// <summary>
+        /// PAGINATION RETURN EXCEPTION.
+        /// </summary>
+        /// <returns>EXCEPTION.</returns>
         [Fact]
         public async Task GetRolesPagin_ThrowException_Failed()
         {
@@ -110,10 +135,13 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             await Assert.ThrowsAnyAsync<Exception>(async () =>
                                     await roleController.GetRolesPagin(null,1,2));
         }
-        #endregion Test for GetPagin method
+        #endregion
 
-        #region Test for get by id method
-        //// Get success
+        #region TEST GET ROLE WITH ID
+        /// <summary>
+        /// GET ROLE BY ID SUCCESS.
+        /// </summary>
+        /// <returns>RESULT NOT NULL.</returns>
         [Fact]
         public async Task GetById_HasData_ReturnSuccess()
         {
@@ -134,7 +162,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.Equal("Test 1",roleVm.Name);
         }
 
-        //// get throw exception
+        /// <summary>
+        /// GET ROLE BY ID RETURN EXCEPTION.
+        /// </summary>
+        /// <returns>EXCEPTION.</returns>
         [Fact]
         public async Task GetById_ThrowException_Failed()
         {
@@ -145,10 +176,13 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             await Assert.ThrowsAnyAsync<Exception>(async () =>
                                     await roleController.GetById("test1"));
         }
-        #endregion end test for get by id method
+        #endregion
 
-        #region Test for Post method
-        //// Post success
+        #region TEST POST ROLE
+        /// <summary>
+        /// CREATE NEW ROLE AND RETURN SUCCESS.
+        /// </summary>
+        /// <returns>RESULT IS NOT NULL, AND HTTP STATUS IS 201.</returns>
         [Fact]
         public async Task PostRole_ValidInput_Success()
         {
@@ -157,7 +191,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
 
             var rolesController = new RolesController(_mockRoleManager.Object);
 
-            var result = await rolesController.PostRole(new RoleVm()
+            var result = await rolesController.PostRole(new RoleCreateRequest()
             {
                 Id = "test",
                 Name = "test"
@@ -167,7 +201,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.IsType<CreatedAtActionResult>(result);
         }
 
-        //// Post failed
+        /// <summary>
+        /// CREATE NEW ROLE FAILED.
+        /// </summary>
+        /// <returns>RESULT NOT NULL AND HTTP STATUS IS 400.</returns>
         [Fact]
         public async Task PostRole_ValidInput_Failed()
         {
@@ -176,7 +213,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
 
             var rolesController = new RolesController(_mockRoleManager.Object);
 
-            var result = await rolesController.PostRole(new RoleVm()
+            var result = await rolesController.PostRole(new RoleCreateRequest()
             {
                 Id = "test",
                 Name = "test"
@@ -185,10 +222,13 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.NotNull(result);
             Assert.IsType<BadRequestObjectResult>(result);
         }
-        #endregion Test for Post method
+        #endregion
 
-        #region Test for Update 
-        //// update success.
+        #region TEST PUT ROLE
+        /// <summary>
+        /// UPDATE ROLE SUCCESS.
+        /// </summary>
+        /// <returns>RESULT IS NOT NULL AND HTTP STATUS IS 204.</returns>
         [Fact]
         public async Task PutRole_ValidInput_Success()
         {
@@ -204,7 +244,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
 
             var roleController = new RolesController(_mockRoleManager.Object);
 
-            var result = await roleController.PutRole("test", new RoleVm()
+            var result = await roleController.PutRole("test", new RoleCreateRequest()
             {
                 Id = "test",
                 Name = "test"
@@ -214,7 +254,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.IsType<NoContentResult>(result);
         }
 
-        //// Update failed
+        /// <summary>
+        /// UPDATE ROLE FAILED.
+        /// </summary>
+        /// <returns>RESULT IS NOT NULL AND HTTP STATUS IS 400.</returns>
         [Fact]
         public async Task PutRole_ValidInput_Failed()
         {
@@ -232,7 +275,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
 
             var roleController = new RolesController(_mockRoleManager.Object);
 
-            var result = await roleController.PutRole("test", new RoleVm()
+            var result = await roleController.PutRole("test", new RoleCreateRequest()
             {
                 Id = "test",
                 Name = "test"
@@ -241,10 +284,13 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.NotNull(result);
             Assert.IsType<BadRequestObjectResult>(result);
         }
-        #endregion end test for Update method
+        #endregion
 
-        #region Test for Delete
-        //// delete success.
+        #region TEST DELETE ROLE
+        /// <summary>
+        /// DELETE ROLE SUCCESS.
+        /// </summary>
+        /// <returns>HTTP STATUS IS 200.</returns>
         [Fact]
         public async Task Delete_ValidInput_Success()
         {
@@ -265,7 +311,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.IsType<OkObjectResult>(result);
         }
 
-        //// Delete failed
+        /// <summary>
+        /// DELETE ROLE FAILED
+        /// </summary>
+        /// <returns>HTTP STATUS IS 400.</returns>
         [Fact]
         public async Task Delete_ValidInput_Failed()
         {
@@ -287,7 +336,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
 
             Assert.IsType<BadRequestObjectResult>(result);
         }
-        #endregion End test for delete
+        #endregion
 
     }
 }

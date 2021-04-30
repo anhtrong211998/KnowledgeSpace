@@ -60,7 +60,7 @@ namespace KnowledgeSpace.BackendServer
 
             //// validator use fluent validator library
             services.AddControllers()
-                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<RoleVmValidator>());
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<RoleCreateRequestValidator>());
 
             //// 3. Add trasient to seed data
             services.AddTransient<DbInitializer>();

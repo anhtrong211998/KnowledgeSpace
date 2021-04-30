@@ -10,7 +10,7 @@ namespace KnowledgeSpace.BackendServer.IdentityServer
     public class Config
     {
         /// <summary>
-        /// Resource of identity.
+        /// RESOURCE OF IDENTITY.
         /// </summary>
         public static IEnumerable<IdentityResource> Ids =>
           new IdentityResource[]
@@ -20,7 +20,7 @@ namespace KnowledgeSpace.BackendServer.IdentityServer
           };
 
         /// <summary>
-        /// List of API use.
+        /// LIST OF API.
         /// </summary>
         public static IEnumerable<ApiResource> Apis =>
             new ApiResource[]
@@ -42,10 +42,10 @@ namespace KnowledgeSpace.BackendServer.IdentityServer
                     RequirePkce = true,
                     AllowOfflineAccess = true,
 
-                    // where to redirect to after login
+                    // WHERE TO REDIRECT TO AFTER LOGIC
                     RedirectUris = { "https://localhost:5002/signin-oidc" },
 
-                    // where to redirect to after logout
+                    // WHERE TO REDIRECT TO AFTER LOGOUT
                     PostLogoutRedirectUris = { "https://localhost:5002/signout-callback-oidc" },
 
                     AllowedScopes = new List<string>
@@ -57,7 +57,7 @@ namespace KnowledgeSpace.BackendServer.IdentityServer
                     }
                  },
 
-                //// Swagger
+                //// SWAGGER
                 new Client
                 {
                     ClientId = "swagger",
@@ -79,7 +79,7 @@ namespace KnowledgeSpace.BackendServer.IdentityServer
                     }
                 },
 
-                //// Admin with angular
+                //// ADMIN WITH ANGULAR
                 new Client
                 {
                     ClientName = "Angular Admin",

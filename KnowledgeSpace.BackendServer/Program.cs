@@ -12,7 +12,7 @@ namespace KnowledgeSpace.BackendServer
     {
         public static void Main(string[] args)
         {
-            //// use serilog library includes: serilog ,serilog.sink.console, serilog.extendtion.hosting
+            //// USE SERILOG LIBRARY INCLUDES: SERILOG, SERILOG.SINK.CONSOLE, SERILOG.EXTENDTION.HOSTING\
             
             Log.Logger = new LoggerConfiguration()
                              .Enrich.FromLogContext()
@@ -20,7 +20,7 @@ namespace KnowledgeSpace.BackendServer
                              .CreateLogger();
             var host = CreateHostBuilder(args).Build();
 
-            //// use dependency injection from DI
+            //// USE DEPENDENCY INJECTION FROM DI
             using (var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;

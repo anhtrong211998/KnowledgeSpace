@@ -35,14 +35,14 @@ namespace KnowledgeSpace.BackendServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //// 1. Setup entity framework
+            //// 1. SETUP ENTITY FRAMEWORK
             services.AddDbContext<KnowledgeSpaceContext>(options =>
                 options.UseSqlServer(
                         Configuration.GetConnectionString("KnowledgeSpaceConnection")
                         )
                 );
 
-            //// 2. Setup identity
+            //// 2. SETUP IDENTITY
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<KnowledgeSpaceContext>();
 
@@ -104,14 +104,14 @@ namespace KnowledgeSpace.BackendServer
 
             services.AddTransient<IEmailSender, EmailSenderService>();
 
-            //// validator use fluent validator library
+            //// VALIDATOR USE FLUENT VALIDATOR LIBRARY
             services.AddControllersWithViews()
-                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<RoleVmValidator>());
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<RoleCreateRequestValidator>());
 
-            //// 3. Add trasient to seed data
+            //// 3. ADD TRANSIENT TO SEED DATA
             services.AddTransient<DbInitializer>();
 
-            //// Swagger
+            //// SWAGGER
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Knowledge Space API", Version = "v1" });
@@ -149,7 +149,7 @@ namespace KnowledgeSpace.BackendServer
                 app.UseDeveloperExceptionPage();
             }
 
-            //// identity4
+            //// IDENTITY4
             app.UseStaticFiles();
 
             app.UseIdentityServer();
@@ -168,7 +168,7 @@ namespace KnowledgeSpace.BackendServer
                 endpoints.MapRazorPages();//identity4
             });
 
-            //// Swagger and Endpont for swagger
+            //// SWAGGER AND ENDPOINT FOR SWAGGER
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>
