@@ -12,10 +12,15 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 
         [MaxLength(50)]
         [Column(TypeName = "varchar(50)")]
+
         public string UserId { get; set; }
 
+        public bool? Status { get; set; }
+
         public DateTime CreateDate { get; set; }
+
         public DateTime? LastModifiedDate { get; set; }
+
 
         [ForeignKey("KnowledgeBaseId")]
         public virtual KnowledgeBase KnowledgeBase { get; set; }

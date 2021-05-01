@@ -8,12 +8,12 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
     public class Command
     {
         [Key]
-        [MaxLength(50, ErrorMessage = "CommandID is at most 50 characters.")]
+        [MaxLength(50)]
         [Column(TypeName = "varchar(50)")]
         public string Id { get; set; }
 
-        [Required(ErrorMessage = "Command name is required.")]
-        [MaxLength(50, ErrorMessage = "Command name is at most 50 characters.")]
+        [Required]
+        [MaxLength(50)]
         public string Name { get; set; }
 
         public virtual IList<CommandInFunction> commandInFunctions { get; set; }

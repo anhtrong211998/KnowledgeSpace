@@ -12,12 +12,12 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Action is at most 50 characters.")]
-        [Required(ErrorMessage = "Action is required.")]
+        [MaxLength(50)]
+        [Required]
         public string Action { get; set; }
 
-        [MaxLength(50, ErrorMessage = "EntityName is at most 50 characters.")]
-        [Required(ErrorMessage = "EntityName is required.")]
+        [MaxLength(50)]
+        [Required]
         public string EntityName { get; set; }
 
         [MaxLength(50)]
@@ -33,7 +33,7 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         [Column(TypeName = "varchar(50)")]
         public string UserId { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Content is at most 500 characters.")]
+        [MaxLength(500)]
         public string Content { get; set; }
 
         [ForeignKey("UserId")]

@@ -11,19 +11,19 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [MaxLength(200, ErrorMessage = "Category name is at most 200 character")]
-        [Required(ErrorMessage = "Category name is required.")]
+        [MaxLength(200)]
+        [Required]
         public string Name { get; set; }
 
-        [MaxLength(200, ErrorMessage = "SeoAlias is at most 200 character")]
+        [MaxLength(200)]
         [Column(TypeName = "varchar(200)")]
-        [Required(ErrorMessage = "SeoAlias is required.")]
+        [Required]
         public string SeoAlias { get; set; }
 
-        [MaxLength(500, ErrorMessage = "SeoDescription is at most 200 character")]
+        [MaxLength(500)]
         public string SeoDescription { get; set; }
 
-        [Required(ErrorMessage = "SortOrder is required.")]
+        [Required]
         public int SortOrder { get; set; }
 
         public int? ParentId { get; set; }

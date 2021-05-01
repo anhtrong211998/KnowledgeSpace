@@ -12,28 +12,28 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "FileName is required.")]
-        [MaxLength(200, ErrorMessage = "FileName is at most 200 characters.")]
+        [Required]
+        [MaxLength(200)]
         public string FileName { get; set; }
 
-        [Required(ErrorMessage = "FilePath is required.")]
-        [MaxLength(200, ErrorMessage = "FilePath is at most 200 characters.")]
+        [Required]
+        [MaxLength(200)]
         public string FilePath { get; set; }
 
-        [Required(ErrorMessage = "FileType is required.")]
-        [MaxLength(4, ErrorMessage = "FileType is at most 4 characters.")]
+        [Required]
+        [MaxLength(4)]
         [Column(TypeName = "varchar(4)")]
         public string FileType { get; set; }
 
-        [Required(ErrorMessage = "FileSize is required.")]
+        [Required]
         public long FileSize { get; set; }
 
         public int? KnowledgeBaseId { get; set; }
 
         public int? CommentId { get; set; }
 
-        [Required(ErrorMessage = "Type is required.")]
-        [MaxLength(10, ErrorMessage = "Type is at most 10 characters.")]
+        [Required]
+        [MaxLength(10)]
         [Column(TypeName = "varchar(10)")]
         public string Type { get; set; }
 

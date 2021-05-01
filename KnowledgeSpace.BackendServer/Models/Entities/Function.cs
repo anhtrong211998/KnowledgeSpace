@@ -8,22 +8,22 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
     public class Function
     {
         [Key]
-        [MaxLength(50, ErrorMessage = "FunctionID is at most 50 characters.")]
+        [MaxLength(50)]
         [Column(TypeName = "varchar(50)")]
         public string Id { get; set; }
 
-        [MaxLength(200, ErrorMessage = "Function name is at most 200 characters.")]
-        [Required(ErrorMessage = "Function name is required.")]
+        [MaxLength(200)]
+        [Required]
         public string Name { get; set; }
 
-        [MaxLength(200, ErrorMessage = "Function Url is at most 200 characters.")]
-        [Required(ErrorMessage = "Function Url is required.")]
+        [MaxLength(200)]
+        [Required]
         public string Url { get; set; }
 
-        [Required(ErrorMessage = "Function SortOrder is required.")]
+        [Required]
         public int SortOrder { get; set; }
 
-        [MaxLength(50, ErrorMessage = "ParentId is at most 50 characters.")]
+        [MaxLength(50)]
         [Column(TypeName = "varchar(50)")]
         public string ParentId { get; set; }
 

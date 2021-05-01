@@ -15,36 +15,36 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 
         public int? CategoryId { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Title is at most 500 characters.")]
-        [Required(ErrorMessage = "Title is required.")]
+        [MaxLength(500)]
+        [Required]
         public string Title { get; set; }
 
-        [MaxLength(500, ErrorMessage = "SeoAlias is at most 500 characters.")]
-        [Required(ErrorMessage = "SeoAlias is required.")]
+        [MaxLength(500)]
+        [Required]
         [Column(TypeName = "varchar(500)")]
         public string SeoAlias { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Description is at most 500 characters.")]
+        [MaxLength(500)]
         public string Description { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Environment is at most 500 characters.")]
+        [MaxLength(500)]
         public string Environment { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Problem is at most 500 characters.")]
+        [MaxLength(500)]
         public string Problem { get; set; }
 
         public string StepToReproduce { get; set; }
 
-        [MaxLength(500, ErrorMessage = "ErrorMessage is at most 500 characters.")]
+        [MaxLength(500)]
         public string ErrorMessage { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Workaround is at most 500 characters.")]
+        [MaxLength(500)]
         public string Workaround { get; set; }
 
         public string Note { get; set; }
 
-        [MaxLength(50, ErrorMessage = "OwnerUserId is at most 50 characters.")]
-        [Required(ErrorMessage = "OwnerUserId is required.")]
+        [MaxLength(50)]
+        [Required]
         [Column(TypeName = "varchar(50)")]
         public string OwnerUserId { get; set; }
 

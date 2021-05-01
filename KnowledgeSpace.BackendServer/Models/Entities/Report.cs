@@ -16,7 +16,7 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 
         public int? CommentId { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Report content is at most 500 characters.")]
+        [MaxLength(500)]
         public string Content { get; set; }
 
         [MaxLength(50)]

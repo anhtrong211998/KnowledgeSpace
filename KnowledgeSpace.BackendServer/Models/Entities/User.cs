@@ -23,15 +23,15 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
             Dob = dob;
         }
 
-        [Required(ErrorMessage = "First Name is required.")]
-        [MaxLength(50, ErrorMessage = "First Name is at most 50 charactes.")]
+        [Required]
+        [MaxLength(50)]
         public string FirstName { get; set; }
 
-        [Required(ErrorMessage = "Last Name is required.")]
-        [MaxLength(50, ErrorMessage = "Last Name is at most 50 charactes.")]
+        [Required]
+        [MaxLength(50)]
         public string LastName { get; set; }
 
-        [Required(ErrorMessage = "BirthDay is required.")]
+        [Required]
         public DateTime Dob { get; set; }
 
         public string FullName
@@ -46,10 +46,10 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         public int? NumberOfKnowledgeBases { get; set; } = 0;
 
         [Range(0, int.MaxValue, ErrorMessage = "Number of Votes must be non-negative.")]
-        public int? NumberOfVotes { get; set; }
+        public int? NumberOfVotes { get; set; } = 0;
 
         [Range(0, int.MaxValue, ErrorMessage = "Number of Reports must be non-negative.")]
-        public int? NumberOfReports { get; set; }
+        public int? NumberOfReports { get; set; } = 0;
 
         public virtual IList<ActivityLog> ActivityLogs { get; set; }
     }

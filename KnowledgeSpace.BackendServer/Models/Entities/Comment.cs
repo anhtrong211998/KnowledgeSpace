@@ -13,8 +13,8 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Comment content is at most 500 characters.")]
-        [Required(ErrorMessage = "Comment content is required.")]
+        [MaxLength(500)]
+        [Required]
         public string Content { get; set; }
 
         [Required]
