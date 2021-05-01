@@ -135,6 +135,11 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [HttpPost]
         public async Task<IActionResult> PostFunction([FromBody] FunctionCreateRequest request)
         {
+            var dbFunction = await _context.Functions.FindAsync(request.Id);
+            if(dbFunction != null)
+            {
+                return BadRequest($"Function with key {request.Id} is already exists!");
+            }
             //// CREATE A INSTANCE OF FUNCTION WITH INFO IS INPUT DATA
             var function = new Function()
             {
