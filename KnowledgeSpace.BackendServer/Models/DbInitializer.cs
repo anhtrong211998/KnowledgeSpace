@@ -26,7 +26,7 @@ namespace KnowledgeSpace.BackendServer.Models
 
         public async Task Seed()
         {
-            #region Quyền
+            #region ROLE
 
             if (!_roleManager.Roles.Any())
             {
@@ -44,9 +44,9 @@ namespace KnowledgeSpace.BackendServer.Models
                 });
             }
 
-            #endregion Quyền
+            #endregion
 
-            #region Người dùng
+            #region USER
 
             if (!_userManager.Users.Any())
             {
@@ -66,9 +66,9 @@ namespace KnowledgeSpace.BackendServer.Models
                 }
             }
 
-            #endregion Người dùng
+            #endregion
 
-            #region Chức năng
+            #region FUNCTION
 
             if (!_context.Functions.Any())
             {
@@ -98,7 +98,9 @@ namespace KnowledgeSpace.BackendServer.Models
                 });
                 await _context.SaveChangesAsync();
             }
+            #endregion
 
+            #region COMMAND
             if (!_context.Commands.Any())
             {
                 _context.Commands.AddRange(new List<Command>()
@@ -111,7 +113,9 @@ namespace KnowledgeSpace.BackendServer.Models
                 });
             }
 
-            #endregion Chức năng
+            #endregion
+
+            #region COMMAND IN FUNCTION
 
             var functions = _context.Functions;
 
@@ -147,7 +151,9 @@ namespace KnowledgeSpace.BackendServer.Models
                     _context.CommandInFunctions.Add(viewAction);
                 }
             }
+            #endregion
 
+            #region PERMISSION
             if (!_context.Permissions.Any())
             {
                 var adminRole = await _roleManager.FindByNameAsync(AdminRoleName);
@@ -159,6 +165,8 @@ namespace KnowledgeSpace.BackendServer.Models
                     _context.Permissions.Add(new Permission(function.Id, adminRole.Id, "VIEW"));
                 }
             }
+
+            #endregion
 
             await _context.SaveChangesAsync();
         }

@@ -24,7 +24,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         {
             _context = context;
         }
-
+        #region BUSSINESS FOR FUNCTION ONLY
         /// <summary>
         /// GET: api/Functions
         /// GET ALL FUNCTIONS.
@@ -125,7 +125,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             return Ok(functionVm);
         }
-        
+
         /// <summary>
         /// POST: api/Functions
         /// CREATE NEW FUNCTIONS.
@@ -135,8 +135,11 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [HttpPost]
         public async Task<IActionResult> PostFunction([FromBody] FunctionCreateRequest request)
         {
+            //// GET FUNCTION WITH ID (KEY)
             var dbFunction = await _context.Functions.FindAsync(request.Id);
-            if(dbFunction != null)
+
+            //// IF RESULT NOT NULL, FUNCTION ALREADY EXISTS, RETURN STATUS 400
+            if (dbFunction != null)
             {
                 return BadRequest($"Function with key {request.Id} is already exists!");
             }
@@ -236,5 +239,153 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             return BadRequest();
         }
+        #endregion
+
+        #region BUSSINESS FOR COMMAND OF FUNCTION
+        /// <summary>
+        /// GET ALL COMMANDS BY FUNCTION.
+        /// </summary>
+        /// <param name="functionId">KEY OF FUNCTION.</param>
+        /// <returns>LIST COMMAND</returns>
+        [HttpGet("{functionId}/commands")]
+        public async Task<IActionResult> GetCommantsInFunction(string functionId)
+        {
+            //// SELECT Id, Name AND FunctionId FROM Command TABLE, CommandInFunction TABLE AND Function TABLE
+            //// WHERE functionId EQUAL CommandInFunction.FunctionId
+            var query = from a in _context.Commands
+                        join cif in _context.CommandInFunctions on a.Id equals cif.CommandId into result1
+                        from commandInFunction in result1.DefaultIfEmpty()
+                        join f in _context.Functions on commandInFunction.FunctionId equals f.Id into result2
+                        from function in result2.DefaultIfEmpty()
+                        select new
+                        {
+                            a.Id,
+                            a.Name,
+                            commandInFunction.FunctionId
+                        };
+            query = query.Where(x => x.FunctionId == functionId);
+
+            //// GIVE INFO INTO CommandVm (JUST SHOW NEEDED FIELD)
+            var data = await query.Select(x => new CommandVm()
+            {
+                Id = x.Id,
+                Name = x.Name
+            }).ToListAsync();
+
+            return Ok(data);
+        }
+
+        /// <summary>
+        /// GET COMMAND NOT IN FUNCTION.
+        /// </summary>
+        /// <param name="functionId">KEY OF FUNCTION.</param>
+        /// <returns></returns>
+        [HttpGet("{functionId}/commands/not-in-function")]
+        public async Task<IActionResult> GetCommantsNotInFunction(string functionId)
+        {
+            //// SELECT Id, Name AND FunctionId FROM Command TABLE, CommandInFunction TABLE AND Function TABLE
+            //// WHERE functionId NOT EQUAL CommandInFunction.FunctionId
+            var query = from a in _context.Commands
+                        join cif in _context.CommandInFunctions on a.Id equals cif.CommandId into result1
+                        from commandInFunction in result1.DefaultIfEmpty()
+                        join f in _context.Functions on commandInFunction.FunctionId equals f.Id into result2
+                        from function in result2.DefaultIfEmpty()
+                        select new
+                        {
+                            a.Id,
+                            a.Name,
+                            commandInFunction.FunctionId
+                        };
+            query = query.Where(x => x.FunctionId != functionId).Distinct();
+
+            //// GIVE INFO INTO CommandVm (JUST SHOW NEEDED FIELD)
+            var data = await query.Select(x => new CommandVm()
+            {
+                Id = x.Id,
+                Name = x.Name
+            }).ToListAsync();
+
+            return Ok(data);
+        }
+
+        /// <summary>
+        /// CREATE NEW COMMAND FOR FUNCTION.
+        /// </summary>
+        /// <param name="functionId">KEY OF FUNCTION.</param>
+        /// <param name="request">INPUT COMMAND's INFO</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpPost("{functionId}/commands")]
+        public async Task<IActionResult> PostCommandToFunction(string functionId, [FromBody] AddCommandToFunctionRequest request)
+        {
+            //// GET COMMAND BY FUNCTION (CommandId,FunctionId)
+            var commandInFunction = await _context.CommandInFunctions.FindAsync(request.CommandId, request.FunctionId);
+
+            //// IF RESULT NOT NULL, COMMAND ALREADY EXIST, CREATE FAILED, RETURN STATUS 400
+            if (commandInFunction != null)
+            {
+                return BadRequest($"This command has been added to function");
+            }
+
+            //// CREATE NEW INSTANCE OF COMMAND IN FUNCTION
+            var entity = new CommandInFunction()
+            {
+                CommandId = request.CommandId,
+                FunctionId = request.FunctionId
+            };
+
+            //// INSERT NEW COMMAND INTO DATABASE AND SAVE CHANGE
+            _context.CommandInFunctions.Add(entity);
+            var result = await _context.SaveChangesAsync();
+
+            //// IF RESULT AFTER INSERT IS GREATER THAN 0, ADD SUCCESS AND RETURN STATUS 201, ELSE RETURN STATUS 400
+            if (result > 0)
+            {
+                return CreatedAtAction(nameof(GetById), new { commandId = request.CommandId, functionId = request.FunctionId }, request);
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
+        /// DELETE COMMAND OF FUNCTION.
+        /// </summary>
+        /// <param name="functionId">KEY OF FUNCTION.</param>
+        /// <param name="commandId">KEY OF COMMAND.</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpDelete("{functionId}/commands/{commandId}")]
+        public async Task<IActionResult> DeleteCommandInFunction(string functionId, string commandId)
+        {
+            //// GET COMMAND BY FUNCTION (FunctionId, CommandId)
+            var commandInFunction = await _context.CommandInFunctions.FindAsync(functionId, commandId);
+
+            //// IF RESULT IS NULL, RETURN STATUS 404
+            if (commandInFunction == null)
+                return BadRequest($"This command is not existed in function");
+
+            //// CREATE NEW INSTANCE OF COMMAND IN FUNCTION
+            var entity = new CommandInFunction()
+            {
+                CommandId = commandId,
+                FunctionId = functionId
+            };
+
+            //// DELETE COMMAND FROM DATABASE AND SAVE CHANGE
+            _context.CommandInFunctions.Remove(entity);
+            var result = await _context.SaveChangesAsync();
+
+            //// IF RESULT AFTER DELETE GREATER THAN 0 (TRUE), RETURN STATS 200, ELSE RETURN STATUS 400
+            if (result > 0)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+        #endregion
+
     }
 }

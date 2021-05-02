@@ -34,7 +34,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.NotNull(controller);
         }
 
-        #region TEST GET ACTION
+        #region TEST GET FUNCTION
         /// <summary>
         /// GET ALL FUNCTIONS.
         /// </summary>
