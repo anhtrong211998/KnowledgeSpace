@@ -210,6 +210,35 @@ namespace KnowledgeSpace.BackendServer.Controllers
         }
 
         /// <summary>
+        /// CHANGE PASSWORD OF USER.
+        /// </summary>
+        /// <param name="id">KEY OF USER.</param>
+        /// <param name="request">CURRENT PASSWORD AND NEW PASSWORD.</param>
+        /// <returns></returns>
+        [HttpPut("{id}/change-password")]
+        public async Task<IActionResult> PutUserPassword(string id, [FromBody] UserPasswordChangeRequest request)
+        {
+            //// GET USER WITH ID (KEY)
+            var user = await _userManager.FindByIdAsync(id);
+
+            //// IF KEY IS NOT EXSIST (USER IS NULL), RETURN STATUS 404
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            //// CHANGE PASSWORD USE SERVICE OF IDENTITYSERVER4
+            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+
+            //// IF RESULT IS SUCCEEDED, CHANGE SUCCESS AND RETURN STATUS 201, ELSE RETURN STATUS 400
+            if (result.Succeeded)
+            {
+                return NoContent();
+            }
+            return BadRequest(result.Errors);
+        }
+
+        /// <summary>
         /// DELETE: api/Users/{id}
         /// DELETE USER WITH ID.
         /// </summary>

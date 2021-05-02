@@ -26,6 +26,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         }
 
         /// <summary>
+        /// GET: api/Permissions
         /// SHOW LIST FUNCTION WITH CORRESSPONDING ACTION INCLUDED IN EACH FUNCTIONS.
         /// </summary>
         /// <returns>LIST OF PERMISSION IN EACH FUNCTIONS.</returns>

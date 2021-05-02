@@ -243,6 +243,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
         #region BUSSINESS FOR COMMAND OF FUNCTION
         /// <summary>
+        /// GET: api/functions/{functionId}/commands
         /// GET ALL COMMANDS BY FUNCTION.
         /// </summary>
         /// <param name="functionId">KEY OF FUNCTION.</param>
@@ -276,6 +277,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         }
 
         /// <summary>
+        /// GET: api/functions/{functionId}/commands/not-in-function
         /// GET COMMAND NOT IN FUNCTION.
         /// </summary>
         /// <param name="functionId">KEY OF FUNCTION.</param>
@@ -309,6 +311,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         }
 
         /// <summary>
+        /// POST: api/functions/{functionId}/commands
         /// CREATE NEW COMMAND FOR FUNCTION.
         /// </summary>
         /// <param name="functionId">KEY OF FUNCTION.</param>
@@ -349,6 +352,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         }
 
         /// <summary>
+        /// DELETE: api/functions/{functionId}/commands/{commandId}
         /// DELETE COMMAND OF FUNCTION.
         /// </summary>
         /// <param name="functionId">KEY OF FUNCTION.</param>
