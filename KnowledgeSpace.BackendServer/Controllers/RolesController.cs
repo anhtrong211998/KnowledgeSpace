@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using KnowledgeSpace.BackendServer.Models;
+using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Systems;
 using Microsoft.AspNetCore.Http;
@@ -14,20 +16,21 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
     public class RolesController : BaseController
     {
-        /// <summary>
-        /// DECLARE SERVICE TO MANAGER ROLE.
-        /// </summary>
         private readonly RoleManager<IdentityRole> _roleManger;
+        private readonly KnowledgeSpaceContext _context;
 
         /// <summary>
         /// CONSTRUCTOR CONTROLLER.
         /// </summary>
         /// <param name="roleManager">ROLE MANAGER SERVICE.</param>
-        public RolesController(RoleManager<IdentityRole> roleManager)
+        public RolesController(RoleManager<IdentityRole> roleManager,
+            KnowledgeSpaceContext context)
         {
             _roleManger = roleManager;
+            _context = context;
         }
 
+        #region MANAGER ROLE
         /// <summary>
         /// GET: api/Roles
         /// GET ALL ROLES.
@@ -37,7 +40,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         public async Task<IActionResult> GetAll()
         {
             //// GET ALL ROLES
-            var role =  _roleManger.Roles;
+            var role = _roleManger.Roles;
 
             //// TAKE INFOMATIONS OF ROLE NEED SHOW
             var roleVms = await role.Select(r => new RoleVm()
@@ -66,7 +69,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NotFound();
             }
-             
+
             //// GIVE INFO TO RoleVm (JUST SHOW NEEDED FIELD)
             var roleVm = new RoleVm()
             {
@@ -89,14 +92,14 @@ namespace KnowledgeSpace.BackendServer.Controllers
         public async Task<IActionResult> GetRolesPagin(string filter, int pageIndex, int pageSize)
         {
             //// GET ALL ROLES.
-            var roles =  _roleManger.Roles;
+            var roles = _roleManger.Roles;
 
             //// IF KEYWORD NOT NULL OR EMPTY, GET ROLES CONTAINS THIS KEYWORD
             if (!string.IsNullOrEmpty(filter))
             {
                 roles = roles.Where(r => r.Id.Contains(filter)
                                       || r.Name.ToLower().Contains(filter.ToLower())
-                                    ); 
+                                    );
             }
 
             //// TOTAL RECORDS EQUAL NUMBER OF ROLE's ROWS
@@ -105,7 +108,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// TAKE RECORDS IN THE PAGE (NEXT PAGE)
             var items = await roles.Skip((pageIndex - 1) * pageSize)
                              .Take(pageSize)
-                             .Select(r => new RoleVm() {
+                             .Select(r => new RoleVm()
+                             {
                                  Id = r.Id,
                                  Name = r.Name
                              }).ToListAsync();
@@ -171,7 +175,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var role = await _roleManger.FindByIdAsync(id);
 
             //// IF ID IS NOT EXIST (ROLE IS NULL), RETURN STATUS 404
-            if(role == null)
+            if (role == null)
             {
                 return NotFound();
             }
@@ -226,6 +230,65 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             return BadRequest(result.Errors);
         }
+        #endregion
 
+        #region MANAGER PERMISSIONS IN EACH FUNCTION
+        /// <summary>
+        /// GET ALL PERMISSIONS BY ROLE ID (KEY OF ROLE).
+        /// </summary>
+        /// <param name="roleId">KEY OF ROLE.</param>
+        /// <returns>HTTP STATUS 200 WITH LIST OF PERMISSION.</returns>
+        [HttpGet("{roleId}/permissions")]
+        public async Task<IActionResult> GetPermissionByRoleId(string roleId)
+        {
+            //// GET ALL PERMISION IN FUNCTION WITH ID EXIST AND RETURN HTTP STATUS 200 WITH LIST OF PERMISSION
+            var permissions = from p in _context.Permissions
+
+                              join a in _context.Commands
+                              on p.CommandId equals a.Id
+                              where p.RoleId == roleId
+                              select new PermissionVm()
+                              {
+                                  FunctionId = p.FunctionId,
+                                  CommandId = p.CommandId,
+                                  RoleId = p.RoleId
+                              };
+
+            return Ok(await permissions.ToListAsync());
+        }
+
+        /// <summary>
+        /// UPDATE PERMISSION BY ROLE ID (KEY OF ROLE).
+        /// </summary>
+        /// <param name="roleId">KEY OF ROLE.</param>
+        /// <param name="request">INFO PERMISSION NEED UPDATE (INPUT DATA).</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpPut("{roleId}/permissions")]
+        public async Task<IActionResult> PutPermissionByRoleId(string roleId, [FromBody] UpdatePermissionRequest request)
+        {
+            //create new permission list from user changed
+            //// CREATE NEW LIST PERMISSION TO SAVE PERMISSION THOSE USER CHANGED 
+            var newPermissions = new List<Permission>();
+            foreach (var p in request.Permissions)
+            {
+                newPermissions.Add(new Permission(p.FunctionId, roleId, p.CommandId));
+            }
+
+            //// GET ALL PERMISSION WITH ROLE ID (KEY OF ROLE) WHICH EXIST IN DATABASE AND REMOVE THEM
+            var existingPermissions = _context.Permissions.Where(x => x.RoleId == roleId);
+            _context.Permissions.RemoveRange(existingPermissions);
+
+            //// ADD NEW PERMISSIONS INTO DATABASE TO CHANGE PERMISSION OF THAT ROLE AND SAVE CHANGE
+            _context.Permissions.AddRange(newPermissions);
+            var result = await _context.SaveChangesAsync();
+
+            //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 201, ELSE RETURN 400
+            if (result > 0)
+            {
+                return NoContent();
+            }
+            return BadRequest();
+        }
+        #endregion
     }
 }

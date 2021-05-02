@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Xunit;
 using MockQueryable.Moq;
 using KnowledgeSpace.ViewModels;
+using KnowledgeSpace.BackendServer.Models;
 
 namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
 {
@@ -19,7 +20,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
     {
         #region MOCK AND CONSTRUCTOR 
         private readonly Mock<RoleManager<IdentityRole>> _mockRoleManager;
-
+        private KnowledgeSpaceContext _context;
         private List<IdentityRole> _roleSources;
 
         /// <summary>
@@ -29,6 +30,8 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         {
             var roleStore = new Mock<IRoleStore<IdentityRole>>();
             _mockRoleManager = new Mock<RoleManager<IdentityRole>>(roleStore.Object, null, null, null, null);
+
+            _context = new InMemoryDbContextFactory().GetApplicationDbContext();
 
             _roleSources = new List<IdentityRole>()
                             {
@@ -47,7 +50,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         [Fact]
         public void ShouldCreateInstance_NotNull_Ok()
         {
-            var rolesController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object, _context);
             Assert.NotNull(rolesController);
         }
 
@@ -61,8 +64,8 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         {
             _mockRoleManager.Setup(x => x.Roles)
                 .Returns(_roleSources.AsQueryable().BuildMock().Object);
-            var roleController = new RolesController(_mockRoleManager.Object);
-            var result = await roleController.GetAll();
+            var rolesController = new RolesController(_mockRoleManager.Object, _context);
+            var result = await rolesController.GetAll();
             var okResult = result as OkObjectResult;
             var roleVms = okResult.Value as IEnumerable<RoleVm>;
             Assert.True(roleVms.Count() > 0);
@@ -77,10 +80,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         {
             _mockRoleManager.Setup(x => x.Roles)
                 .Throws<Exception>();
-            var roleController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object, _context);
 
             await Assert.ThrowsAnyAsync<Exception>(async () =>
-                                    await roleController.GetAll());
+                                    await rolesController.GetAll());
         }
         #endregion
 
@@ -94,8 +97,8 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         {
             _mockRoleManager.Setup(x => x.Roles)
                 .Returns(_roleSources.AsQueryable().BuildMock().Object);
-            var roleController = new RolesController(_mockRoleManager.Object);
-            var result = await roleController.GetRolesPagin(null,1,2);
+            var rolesController = new RolesController(_mockRoleManager.Object, _context);
+            var result = await rolesController.GetRolesPagin(null,1,2);
             var okResult = result as OkObjectResult;
             var roleVms = okResult.Value as Pagination<RoleVm>;
 
@@ -112,8 +115,8 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         {
             _mockRoleManager.Setup(x => x.Roles)
                 .Returns(_roleSources.AsQueryable().BuildMock().Object);
-            var roleController = new RolesController(_mockRoleManager.Object);
-            var result = await roleController.GetRolesPagin("test3", 1, 2);
+            var rolesController = new RolesController(_mockRoleManager.Object, _context);
+            var result = await rolesController.GetRolesPagin("test3", 1, 2);
             var okResult = result as OkObjectResult;
             var roleVms = okResult.Value as Pagination<RoleVm>;
 
@@ -130,10 +133,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         {
             _mockRoleManager.Setup(x => x.Roles)
                 .Throws<Exception>();
-            var roleController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object, _context);
 
             await Assert.ThrowsAnyAsync<Exception>(async () =>
-                                    await roleController.GetRolesPagin(null,1,2));
+                                    await rolesController.GetRolesPagin(null,1,2));
         }
         #endregion
 
@@ -152,8 +155,8 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
                     Name = "Test 1"
                 }) ;
 
-            var roleController = new RolesController(_mockRoleManager.Object);
-            var result = await roleController.GetById("test1");
+            var rolesController = new RolesController(_mockRoleManager.Object,_context);
+            var result = await rolesController.GetById("test1");
             var okResult = result as OkObjectResult;
 
             Assert.NotNull(okResult);
@@ -171,10 +174,10 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         {
             _mockRoleManager.Setup(x => x.FindByIdAsync(It.IsAny<string>()))
                 .Throws<Exception>();
-            var roleController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object,_context);
 
             await Assert.ThrowsAnyAsync<Exception>(async () =>
-                                    await roleController.GetById("test1"));
+                                    await rolesController.GetById("test1"));
         }
         #endregion
 
@@ -189,7 +192,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             _mockRoleManager.Setup(x => x.CreateAsync(It.IsAny<IdentityRole>()))
                             .ReturnsAsync(IdentityResult.Success);
 
-            var rolesController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object, _context);
 
             var result = await rolesController.PostRole(new RoleCreateRequest()
             {
@@ -211,7 +214,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             _mockRoleManager.Setup(x => x.CreateAsync(It.IsAny<IdentityRole>()))
                             .ReturnsAsync(IdentityResult.Failed(new IdentityError[] { }));
 
-            var rolesController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object, _context);
 
             var result = await rolesController.PostRole(new RoleCreateRequest()
             {
@@ -242,9 +245,9 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             _mockRoleManager.Setup(x => x.UpdateAsync(It.IsAny<IdentityRole>()))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var roleController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object,_context);
 
-            var result = await roleController.PutRole("test", new RoleCreateRequest()
+            var result = await rolesController.PutRole("test", new RoleCreateRequest()
             {
                 Id = "test",
                 Name = "test"
@@ -273,9 +276,9 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
                     new IdentityError[] { })
                 );
 
-            var roleController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object,_context);
 
-            var result = await roleController.PutRole("test", new RoleCreateRequest()
+            var result = await rolesController.PutRole("test", new RoleCreateRequest()
             {
                 Id = "test",
                 Name = "test"
@@ -304,9 +307,9 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             _mockRoleManager.Setup(x => x.DeleteAsync(It.IsAny<IdentityRole>()))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var roleController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object,_context);
 
-            var result = await roleController.DeleteRole("test");
+            var result = await rolesController.DeleteRole("test");
 
             Assert.IsType<OkObjectResult>(result);
         }
@@ -330,9 +333,9 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
                     new IdentityError[] { })
                 );
 
-            var roleController = new RolesController(_mockRoleManager.Object);
+            var rolesController = new RolesController(_mockRoleManager.Object,_context);
 
-            var result = await roleController.DeleteRole("test");
+            var result = await rolesController.DeleteRole("test");
 
             Assert.IsType<BadRequestObjectResult>(result);
         }

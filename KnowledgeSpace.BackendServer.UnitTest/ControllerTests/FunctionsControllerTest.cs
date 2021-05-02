@@ -70,28 +70,28 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             _context.Functions.AddRange(new List<Function>()
             {
                 new Function(){
-                    Id = "GetFunctionsPaging_NoFilter_ReturnSuccess1",
+                    Id = "GetFunctionsPaging_NoFilter_ReturnSuccess5",
                     ParentId = null,
                     Name = "GetFunctionsPaging_NoFilter_ReturnSuccess1",
                     SortOrder =1,
                     Url ="/test1"
                 },
                  new Function(){
-                    Id = "GetFunctionsPaging_NoFilter_ReturnSuccess2",
+                    Id = "GetFunctionsPaging_NoFilter_ReturnSuccess6",
                     ParentId = null,
                     Name = "GetFunctionsPaging_NoFilter_ReturnSuccess2",
                     SortOrder =2,
                     Url ="/test2"
                 },
                   new Function(){
-                    Id = "GetFunctionsPaging_NoFilter_ReturnSuccess3",
+                    Id = "GetFunctionsPaging_NoFilter_ReturnSuccess7",
                     ParentId = null,
                     Name = "GetFunctionsPaging_NoFilter_ReturnSuccess3",
                     SortOrder = 3,
                     Url ="/test3"
                 },
                    new Function(){
-                    Id = "GetFunctionsPaging_NoFilter_ReturnSuccess4",
+                    Id = "GetFunctionsPaging_NoFilter_ReturnSuccess8",
                     ParentId = null,
                     Name = "GetFunctionsPaging_NoFilter_ReturnSuccess4",
                     SortOrder =4,

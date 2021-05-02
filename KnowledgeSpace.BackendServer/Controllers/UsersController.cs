@@ -1,4 +1,5 @@
-﻿using KnowledgeSpace.BackendServer.Models.Entities;
+﻿using KnowledgeSpace.BackendServer.Models;
+using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Systems;
 using Microsoft.AspNetCore.Http;
@@ -14,20 +15,24 @@ namespace KnowledgeSpace.BackendServer.Controllers
 {
     public class UsersController : BaseController
     {
-        /// <summary>
-        /// DECLARE SERVICE TO MANAGER USER
-        /// </summary>
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly KnowledgeSpaceContext _context;
 
         /// <summary>
         /// CONSTRUCTOR CONTROLLER.
         /// </summary>
         /// <param name="userManager">USER MANAGER SERVICE.</param>
-        public UsersController(UserManager<User> userManager)
+        public UsersController(UserManager<User> userManager,
+            RoleManager<IdentityRole> roleManager,
+            KnowledgeSpaceContext context)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
+            _context = context;
         }
 
+        #region MANAGER USER
         /// <summary>
         /// GET: api/Users
         /// GET ALL USERS.
@@ -154,7 +159,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 FirstName = request.FirstName,
                 PhoneNumber = request.PhoneNumber
             };
-            
+
             //// INSERT NEW USER INTO DATATABLE OF DATABASE AND SAVE CHANGE
             var result = await _userManager.CreateAsync(user, request.Password);
 
@@ -187,7 +192,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NotFound();
             }
-                
+
             //// GIVE INPUT DATA FOR EACH FIELD OF OBJECT WHICH NEED UPDATE INFOMATIONS
             user.FirstName = request.FirstName;
             user.LastName = request.LastName;
@@ -221,7 +226,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NotFound();
             }
-                
+
             //// DELETE USER FROM DATATABLE IN DATABASE AND SAVE CHANGE
             var result = await _userManager.DeleteAsync(user);
 
@@ -242,5 +247,45 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             return BadRequest(result.Errors);
         }
+        #endregion
+
+        #region MANAGER PERMISSION BY USER
+        /// <summary>
+        /// DYNAMIC MENU BY PERMISSION IN EACH USER.
+        /// </summary>
+        /// <param name="userId">KEY OF USER.</param>
+        /// <returns>LIST FUNCTIONS IN EACH USER.</returns>
+        [HttpGet("{userId}/menu")]
+        public async Task<IActionResult> GetMenuByUserPermission(string userId)
+        {
+            //// GET USER WITH ID (KEY)
+            var user = await _userManager.FindByIdAsync(userId);
+
+            //// GET ROLE OF USER
+            var roles = await _userManager.GetRolesAsync(user);
+
+            //// GET FUNCTION WHICH USER HAS PERMISSION (NOT DUPLICATE) AND RETURN WITH HTTP STATUS 200
+            var query = from f in _context.Functions
+                        join p in _context.Permissions
+                            on f.Id equals p.FunctionId
+                        join r in _roleManager.Roles on p.RoleId equals r.Id
+                        join a in _context.Commands
+                            on p.CommandId equals a.Id
+                        where roles.Contains(r.Name) && a.Id == "VIEW"
+                        select new FunctionVm
+                        {
+                            Id = f.Id,
+                            Name = f.Name,
+                            Url = f.Url,
+                            ParentId = f.ParentId,
+                            SortOrder = f.SortOrder,
+                        };
+            var data = await query.Distinct()
+                .OrderBy(x => x.ParentId)
+                .ThenBy(x => x.SortOrder)
+                .ToListAsync();
+            return Ok(data);
+        }
+        #endregion
     }
 }

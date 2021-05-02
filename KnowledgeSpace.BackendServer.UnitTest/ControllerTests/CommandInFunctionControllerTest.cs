@@ -124,7 +124,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
             Assert.NotNull(okResult);
 
             var commandVm = okResult.Value as IEnumerable<CommandVm>;
-            Assert.True(commandVm.Count() > 0); ;
+            Assert.True(commandVm.Count() > 0); 
         }
 
         /// <summary>
