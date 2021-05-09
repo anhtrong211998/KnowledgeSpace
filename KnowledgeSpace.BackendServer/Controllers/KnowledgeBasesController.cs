@@ -1,5 +1,7 @@
-﻿using KnowledgeSpace.BackendServer.Models;
+﻿using KnowledgeSpace.BackendServer.Helpers;
+using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
+using KnowledgeSpace.BackendServer.Services;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Contents;
 using Microsoft.AspNetCore.Http;
@@ -15,14 +17,17 @@ namespace KnowledgeSpace.BackendServer.Controllers
     public class KnowledgeBasesController : BaseController
     {
         private readonly KnowledgeSpaceContext _context;
+        private readonly ISequenceService _sequenceService;
 
         /// <summary>
         /// CONSTRUCTOR CONTROLLER.
         /// </summary>
         /// <param name="context">DbContext.</param>
-        public KnowledgeBasesController(KnowledgeSpaceContext context)
+        public KnowledgeBasesController(KnowledgeSpaceContext context,
+            ISequenceService sequenceService)
         {
             _context = context;
+            _sequenceService = sequenceService;
         }
 
         #region KNOWLEDGE BASE MANAGERMENT
@@ -148,6 +153,16 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 Labels = request.Labels,
             };
 
+            knowledgeBase.Id = await _sequenceService.GetKnowledgeBaseNewId();
+
+            _context.KnowledgeBases.Add(knowledgeBase);
+
+            //// PROCESS LABEL
+            if (!string.IsNullOrEmpty(request.Labels))
+            {
+                await ProcessLabel(request, knowledgeBase);
+            }
+
             //// INSERT NEW KNOWLEDGE BASE INTO DATABASE AND SAVE CHANGE
             _context.KnowledgeBases.Add(knowledgeBase);
             var result = await _context.SaveChangesAsync();
@@ -201,6 +216,12 @@ namespace KnowledgeSpace.BackendServer.Controllers
             knowledgeBase.Note = request.Note;
 
             knowledgeBase.Labels = request.Labels;
+
+            //// PROCESS LABEL
+            if (!string.IsNullOrEmpty(request.Labels))
+            {
+                await ProcessLabel(request, knowledgeBase);
+            }
 
             //// UPDATE KNOWLEDGE BASE AND SAVE CHANGE
             _context.KnowledgeBases.Update(knowledgeBase);
@@ -288,6 +309,44 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 NumberOfReports = knowledgeBase.NumberOfReports
             };
         }
+
+        /// <summary>
+        /// ADD LABEL FOR KNOWLEDGE BASE.
+        /// </summary>
+        /// <param name="request">INPUT DATA OF KNOWLEDGE BASE.</param>
+        /// <param name="knowledgeBase"></param>
+        /// <returns></returns>
+        private async Task ProcessLabel(KnowledgeBaseCreateRequest request, KnowledgeBase knowledgeBase)
+        {
+            //// SPLIT STRING LABEL OF KNOWLEDGE BASE TO A ARRAY
+            string[] labels = request.Labels.Split(',');
+            foreach (var labelText in labels)
+            {
+                //// CONVERT SEALED CHARACTERS TO UNSIGN STRING, AND IT IS ID OF LABEL
+                var labelId = TextHelper.ToUnsignString(labelText);
+
+                //// GET LABEL WITH ID, IF KEY NOT EXIST, CREATE NEW LABEL 
+                var existingLabel = await _context.Labels.FindAsync(labelId);
+                if (existingLabel == null)
+                {
+                    var labelEntity = new Label()
+                    {
+                        Id = labelId,
+                        Name = labelText
+                    };
+                    _context.Labels.Add(labelEntity);
+                }
+
+                //// ADD LABEL FOR KNOWLEDGE BASE
+                var labelInKnowledgeBase = new LabelInKnowledgeBase()
+                {
+                    KnowledgeBaseId = knowledgeBase.Id,
+                    LabelId = labelId
+                };
+                _context.LabelInKnowledgeBases.Add(labelInKnowledgeBase);
+            }
+        }
+
         #endregion
 
         #region COMMENT MANAGERMENT
