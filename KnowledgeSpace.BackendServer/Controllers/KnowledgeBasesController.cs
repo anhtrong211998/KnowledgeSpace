@@ -478,5 +478,106 @@ namespace KnowledgeSpace.BackendServer.Controllers
             return BadRequest();
         }
         #endregion
+
+        #region VOTES MANAGERMENT
+        /// <summary>
+        /// GET ALL VOTES OF KNOWLEDGE BASE.
+        /// </summary>
+        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpGet("{knowledgeBaseId}/votes")]
+        public async Task<IActionResult> GetVotes(int knowledgeBaseId)
+        {
+            //// GET ALL VOTE WITH CONDITION KNOWLEDGEBASE_ID OF VOTE EQUAL ID OF KNOWLEDGE BASE
+            var votes = await _context.Votes
+                .Where(x => x.KnowledgeBaseId == knowledgeBaseId)
+                .Select(x => new VoteVm()
+                {
+                    UserId = x.UserId,
+                    KnowledgeBaseId = x.KnowledgeBaseId,
+                    CreateDate = x.CreateDate,
+                    LastModifiedDate = x.LastModifiedDate
+                }).ToListAsync();
+            return Ok(votes);
+        }
+
+        /// <summary>
+        /// CREATE NEW VOTE.
+        /// </summary>
+        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
+        /// <param name="request">INPUT DATA.</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpPost("{knowledgeBaseId}/votes")]
+        public async Task<IActionResult> PostVote(int knowledgeBaseId, [FromBody] VoteCreateRequest request)
+        {
+            //// GET VOTE WITH ID AND  USER ID (KEY), IF KEY EXIST RETURN STATUS 400
+            var vote = await _context.Votes.FindAsync(knowledgeBaseId, request.UserId);
+            if (vote != null)
+                return BadRequest("This user has been voted for this KB");
+
+            //// CREATE A CONSTANCE OF VOTE
+            vote = new Vote()
+            {
+                KnowledgeBaseId = knowledgeBaseId,
+                UserId = request.UserId
+            };
+
+            //// INSERT INTO DATABASE
+            _context.Votes.Add(vote);
+
+            //// GET KNOWLEDGE BASE WITH ID, IF NULL RETURN STATUS 400
+            var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
+            if (knowledgeBase == null)
+                return BadRequest();
+            //// UPDATE NUMBER OF VOTES INCREASE 1 AND  SAVE CHANGE
+            knowledgeBase.NumberOfVotes = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) + 1;
+            _context.KnowledgeBases.Update(knowledgeBase);
+            var result = await _context.SaveChangesAsync();
+
+            //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 204, ELSE RETURN STATUS 400
+            if (result > 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
+        /// DELETE VOTE.
+        /// </summary>
+        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
+        /// <param name="userId">CURRENT USE LOGIN.</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpDelete("{knowledgeBaseId}/votes/{userId}")]
+        public async Task<IActionResult> DeleteVote(int knowledgeBaseId, string userId)
+        {
+            //// GET VOTE WITH ID AND  USER ID (KEY), IF KEY EXIST RETURN STATUS 400
+            var vote = await _context.Votes.FindAsync(knowledgeBaseId, userId);
+            if (vote == null)
+                return NotFound();
+            //// GET KNOWLEDGE BASE WITH ID, IF NULL RETURN STATUS 400
+            var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
+            if (knowledgeBase == null)
+                return BadRequest();
+
+            //// UPDATE NUMBER OF VOTES DECREASE 1 
+            knowledgeBase.NumberOfVotes = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) - 1;
+            _context.KnowledgeBases.Update(knowledgeBase);
+
+            //// REMOVE VOTE AND  SAVE CHANGE
+            _context.Votes.Remove(vote);
+            var result = await _context.SaveChangesAsync();
+
+            //// IF RESULT AFTER DELETE IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
+            if (result > 0)
+            {
+                return Ok();
+            }
+            return BadRequest();
+        }
+        #endregion
     }
 }

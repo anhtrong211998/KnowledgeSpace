@@ -15,8 +15,6 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 
         public string UserId { get; set; }
 
-        public bool? Status { get; set; }
-
         public DateTime CreateDate { get; set; }
 
         public DateTime? LastModifiedDate { get; set; }

@@ -103,6 +103,7 @@ namespace KnowledgeSpace.BackendServer
             });
 
             services.AddTransient<IEmailSender, EmailSenderService>();
+            services.AddTransient<ISequenceService, SequenceService>();
 
             //// VALIDATOR USE FLUENT VALIDATOR LIBRARY
             services.AddControllersWithViews()
