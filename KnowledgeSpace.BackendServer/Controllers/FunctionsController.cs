@@ -1,4 +1,6 @@
-﻿using KnowledgeSpace.BackendServer.Models;
+﻿using KnowledgeSpace.BackendServer.Authorization;
+using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Systems;
@@ -31,6 +33,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// </summary>
         /// <returns>LIST OF FUNCTIONS.</returns>
         [HttpGet]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.VIEW)]
         public async Task<IActionResult> GetFunctions()
         {
             //// GET ALL FUNCTIONS
@@ -58,6 +61,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="pageSize">NUMBER OF RECORDS EACH PAGE.</param>
         /// <returns>HTTP STATUS WITH LIST OF FUNCTIONS.</returns>
         [HttpGet("filter")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.VIEW)]
         public async Task<IActionResult> GetFunctionsPaging(string filter, int pageIndex, int pageSize)
         {
             //// GET ALL FUNCTIONS
@@ -104,6 +108,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF FUNCTION.</param>
         /// <returns>FUNCTION WITH KEY.</returns>
         [HttpGet("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.VIEW)]
         public async Task<IActionResult> GetById(string id)
         {
             //// GET FUNCTION WITH KEY INPUT
@@ -133,6 +138,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT FUNCTION's INFO.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.CREATE)]
         public async Task<IActionResult> PostFunction([FromBody] FunctionCreateRequest request)
         {
             //// GET FUNCTION WITH ID (KEY)
@@ -176,6 +182,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INFO NEED UPDATE (INPUT DATA).</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.UPDATE)]
         public async Task<IActionResult> PutFunction(string id, [FromBody] FunctionCreateRequest request)
         {
             //// GET FUNCTION WITH ID (KEY)
@@ -210,6 +217,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF FUNCTION.</param>
         /// <returns>HTTP STATUS</returns>
         [HttpDelete("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.DELETE)]
         public async Task<IActionResult> DeleteFunction(string id)
         {
             //// GET FUNCTION WITH ID (KEY).
@@ -249,6 +257,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="functionId">KEY OF FUNCTION.</param>
         /// <returns>LIST COMMAND</returns>
         [HttpGet("{functionId}/commands")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.VIEW)]
         public async Task<IActionResult> GetCommantsInFunction(string functionId)
         {
             //// SELECT Id, Name AND FunctionId FROM Command TABLE, CommandInFunction TABLE AND Function TABLE
@@ -283,6 +292,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="functionId">KEY OF FUNCTION.</param>
         /// <returns></returns>
         [HttpGet("{functionId}/commands/not-in-function")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.VIEW)]
         public async Task<IActionResult> GetCommantsNotInFunction(string functionId)
         {
             //// SELECT Id, Name AND FunctionId FROM Command TABLE, CommandInFunction TABLE AND Function TABLE
@@ -318,6 +328,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT COMMAND's INFO</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost("{functionId}/commands")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.CREATE)]
         public async Task<IActionResult> PostCommandToFunction(string functionId, [FromBody] AddCommandToFunctionRequest request)
         {
             //// GET COMMAND BY FUNCTION (CommandId,FunctionId)
@@ -359,6 +370,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="commandId">KEY OF COMMAND.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpDelete("{functionId}/commands/{commandId}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.DELETE)]
         public async Task<IActionResult> DeleteCommandInFunction(string functionId, string commandId)
         {
             //// GET COMMAND BY FUNCTION (FunctionId, CommandId)

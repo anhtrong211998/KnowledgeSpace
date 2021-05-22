@@ -1,4 +1,6 @@
-﻿using KnowledgeSpace.BackendServer.Models;
+﻿using KnowledgeSpace.BackendServer.Authorization;
+using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Contents;
@@ -31,6 +33,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// </summary>
         /// <returns>HTTP STATUS WITH LIST OF CATEGORIES.</returns>
         [HttpGet]
+        [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.VIEW)]
         public async Task<IActionResult> GetCategories()
         {
             //// GET ALL CATEGORIES FROM DATABASE
@@ -50,6 +53,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="pageSize">NUMBER OF RECORDS IN EACH PAGE.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("filter")]
+        [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.VIEW)]
         public async Task<IActionResult> GetCategoriesPaging(string filter, int pageIndex, int pageSize)
         {
             //// GET ALL CATEGORIES
@@ -84,6 +88,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF CATEGORY.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("{id}")]
+        [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.VIEW)]
         public async Task<IActionResult> GetById(string id)
         {
             //// GET CATEGORY WITH ID (KEY)
@@ -103,6 +108,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
+        [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.CREATE)]
         public async Task<IActionResult> PostCategory([FromBody] CategoryCreateRequest request)
         {
             //// CREATE A CONSTANCE OF CATEGORY WITH INFORS ARE INPUT DATA
@@ -137,6 +143,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{id}")]
+        [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.UPDATE)]
         public async Task<IActionResult> PutCategory(int id, [FromBody] CategoryCreateRequest request)
         {
             //// GET CATEGORY WITH ID (KEY)
@@ -176,6 +183,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF CATEGORY.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpDelete("{id}")]
+        [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.DELETE)]
         public async Task<IActionResult> DeleteCategory(string id)
         {
             //// GET CATEGORY WITH ID (KEY)

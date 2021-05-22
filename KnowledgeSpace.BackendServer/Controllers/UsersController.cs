@@ -1,4 +1,6 @@
-﻿using KnowledgeSpace.BackendServer.Models;
+﻿using KnowledgeSpace.BackendServer.Authorization;
+using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Systems;
@@ -39,6 +41,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// </summary>
         /// <returns>LIST OF USERS.</returns>
         [HttpGet]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.VIEW)]
         public async Task<IActionResult> GetUsers()
         {
             //// GET ALL USERS
@@ -68,6 +71,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="pageSize">NUMBER OF RECORDS EACH PAGE.</param>
         /// <returns>HTTP STATUS WITH LIST OF USERS.</returns>
         [HttpGet("filter")]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.VIEW)]
         public async Task<IActionResult> GetUsersPaging(string filter, int pageIndex, int pageSize)
         {
             //// GET ALL USERS
@@ -115,6 +119,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF USER.</param>
         /// <returns>HTTP STATUS CODE.</returns>
         [HttpGet("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.VIEW)]
         public async Task<IActionResult> GetById(string id)
         {
             //// GET USER WITH ID (KEY)
@@ -146,6 +151,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT USER's INFO.</param>
         /// <returns>HTTP STATUS CODE.</returns>
         [HttpPost]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.CREATE)]
         public async Task<IActionResult> PostUser(UserCreateRequest request)
         {
             //// CREATE NEW INSTANCE OF USER WITH INFO IS INPUT DATA
@@ -182,6 +188,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INFO NEED UPDATE (INPUT DATA).</param>
         /// <returns>HTTP STATUS CODE.</returns>
         [HttpPut("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.UPDATE)]
         public async Task<IActionResult> PutUser(string id, [FromBody] UserCreateRequest request)
         {
             //// GET USER WITH ID (KEY)
@@ -216,6 +223,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">CURRENT PASSWORD AND NEW PASSWORD.</param>
         /// <returns></returns>
         [HttpPut("{id}/change-password")]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.UPDATE)]
         public async Task<IActionResult> PutUserPassword(string id, [FromBody] UserPasswordChangeRequest request)
         {
             //// GET USER WITH ID (KEY)
@@ -245,6 +253,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF USER.</param>
         /// <returns>HTTP STATUS CODE.</returns>
         [HttpDelete("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.DELETE)]
         public async Task<IActionResult> DeleteUser(string id)
         {
             //// GET USER WITH ID (KEY)

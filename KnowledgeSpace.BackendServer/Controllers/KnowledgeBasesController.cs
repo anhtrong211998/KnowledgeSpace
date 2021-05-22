@@ -1,4 +1,6 @@
-﻿using KnowledgeSpace.BackendServer.Helpers;
+﻿using KnowledgeSpace.BackendServer.Authorization;
+using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.BackendServer.Services;
@@ -42,6 +44,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// </summary>
         /// <returns>HTTP STATUS WITH LIST OF KNOWLEDGE BASE.</returns>
         [HttpGet]
+        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.VIEW)]
         public async Task<IActionResult> GetKnowledgeBases()
         {
             //// GET ALL KNOWLEDGE BASE IN DATABASE
@@ -68,6 +71,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="pageSize">NUMBER OF RECORDS EACH PAGE.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("filter")]
+        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.VIEW)]
         public async Task<IActionResult> GetKnowledgeBasesPaging(string filter, int pageIndex, int pageSize)
         {
             //// GET ALL KNOWLEDGE BASES
@@ -110,6 +114,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF KNOWLEDGE BASE.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("{id}")]
+        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.VIEW)]
         public async Task<IActionResult> GetById(int id)
         {
             //// GET KNOWLEDGE BASE WITH ID (KEY)
@@ -130,6 +135,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
+        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.CREATE)]
         public async Task<IActionResult> PostKnowledgeBase([FromForm] KnowledgeBaseCreateRequest request)
         {
             //// CREATE NEW INSTANCE OF KNOWLEDGE BASE WITH INFOS ARE INPUT DATA
@@ -200,6 +206,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA NEED CHANGE.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{id}")]
+        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.UPDATE)]
         public async Task<IActionResult> PutKnowledgeBase(int id, [FromBody] KnowledgeBaseCreateRequest request)
         {
             //// GET KNOWLEDGE BASE WITH ID (KEY)
@@ -256,6 +263,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF KNOWLEDGE BASE.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpDelete("{id}")]
+        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.DELETE)]
         public async Task<IActionResult> DeleteKnowledgeBase(string id)
         {
             //// GET KNOWLEDGE BASE WITH ID (KEY)
@@ -393,6 +401,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="pageSize">NUMBER OF RECORDS IN EACH PAGE.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("{knowledgeBaseId}/comments/filter")]
+        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.VIEW)]
         public async Task<IActionResult> GetCommentsPaging(int knowledgeBaseId, string filter, int pageIndex, int pageSize)
         {
             //// GET ALL COMMENTS OF KNOWLEDGE BASE
@@ -434,6 +443,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="commentId">KEY OF COMMENT.</param>
         /// <returns>HTTP STATUS WITH COMMENT's INFORMATION.</returns>
         [HttpGet("{knowledgeBaseId}/comments/{commentId}")]
+        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.VIEW)]
         public async Task<IActionResult> GetCommentDetail(int commentId)
         {
             //// GET COMMENT WITH ID (KEY)
@@ -463,6 +473,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost("{knowledgeBaseId}/comments")]
+        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.CREATE)]
         public async Task<IActionResult> PostComment(int knowledgeBaseId, [FromBody] CommentCreateRequest request)
         {
             //// CREATE NEW CONSTANCE OF COMMENT WITH INFORMATION ARE INPUT DATA
@@ -503,6 +514,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{knowledgeBaseId}/comments/{commentId}")]
+        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.UPDATE)]
         public async Task<IActionResult> PutComment(int commentId, [FromBody] CommentCreateRequest request)
         {
             //// GET COMMENT WITH ID (KEY)
@@ -534,6 +546,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="commentId">KEY OF COMMENT.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpDelete("{knowledgeBaseId}/comments/{commentId}")]
+        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.DELETE)]
         public async Task<IActionResult> DeleteComment(int knowledgeBaseId, int commentId)
         {
             //// GET COMMENT WITH ID (KEY), IF KEY IS NOT EXIST, RETURN STATUS 404

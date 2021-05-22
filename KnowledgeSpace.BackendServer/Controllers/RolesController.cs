@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using KnowledgeSpace.BackendServer.Authorization;
+using KnowledgeSpace.BackendServer.Constants;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
@@ -37,6 +39,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// </summary>
         /// <returns>LIST OF ROLES.</returns>
         [HttpGet]
+        [ClaimRequirement(FunctionCode.SYSTEM_ROLE, CommandCode.VIEW)]
         public async Task<IActionResult> GetAll()
         {
             //// GET ALL ROLES
@@ -59,6 +62,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF ROLE.</param>
         /// <returns>ROLE WITH KEY.</returns>
         [HttpGet("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_ROLE, CommandCode.VIEW)]
         public async Task<IActionResult> GetById(string id)
         {
             //// GET ROLE WITH ID (KEY)
@@ -89,6 +93,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="pageSize">NUMBER OF RECORDS EACH PAGE.</param>
         /// <returns>HTTP STATUS WITH LIST OF ROLES.</returns>
         [HttpGet("filter")]
+        [ClaimRequirement(FunctionCode.SYSTEM_ROLE, CommandCode.VIEW)]
         public async Task<IActionResult> GetRolesPagin(string filter, int pageIndex, int pageSize)
         {
             //// GET ALL ROLES.
@@ -131,6 +136,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT ROLE's INFO.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
+        [ClaimRequirement(FunctionCode.SYSTEM_ROLE, CommandCode.CREATE)]
         public async Task<IActionResult> PostRole(RoleCreateRequest request)
         {
             //// CREATE A INSTANCE OF ROLE WITH INFO IS INPUT DATA
@@ -163,6 +169,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INFO NEED UPDATE (INPUT DATA).</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_ROLE, CommandCode.UPDATE)]
         public async Task<IActionResult> PutRole(string id, RoleCreateRequest request)
         {
             //// IF ID(request.ID) INPUT AND id (KEY OF ROLE WHICH NEED UPDATE) ARE DIFFERENT, RETURN STATUS 400 
@@ -203,6 +210,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF ROLE.</param>
         /// <returns>HTTP STATUS CODE.</returns>
         [HttpDelete("{id}")]
+        [ClaimRequirement(FunctionCode.SYSTEM_ROLE, CommandCode.DELETE)]
         public async Task<IActionResult> DeleteRole(string id)
         {
             //// GET ROLE WITH ID (KEY)
@@ -239,6 +247,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="roleId">KEY OF ROLE.</param>
         /// <returns>HTTP STATUS 200 WITH LIST OF PERMISSION.</returns>
         [HttpGet("{roleId}/permissions")]
+        [ClaimRequirement(FunctionCode.SYSTEM_PERMISSION, CommandCode.VIEW)]
         public async Task<IActionResult> GetPermissionByRoleId(string roleId)
         {
             //// GET ALL PERMISION IN FUNCTION WITH ID EXIST AND RETURN HTTP STATUS 200 WITH LIST OF PERMISSION
@@ -264,6 +273,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INFO PERMISSION NEED UPDATE (INPUT DATA).</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{roleId}/permissions")]
+        [ClaimRequirement(FunctionCode.SYSTEM_PERMISSION, CommandCode.UPDATE)]
         public async Task<IActionResult> PutPermissionByRoleId(string roleId, [FromBody] UpdatePermissionRequest request)
         {
             //create new permission list from user changed
