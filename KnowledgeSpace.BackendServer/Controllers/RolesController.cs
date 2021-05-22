@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using KnowledgeSpace.BackendServer.Authorization;
 using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
@@ -71,7 +72,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF KEY IS NOT EXIST (ROLE IS NULL), RETURN STATUS 404
             if (role == null)
             {
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot find role with id: {id}"));
             }
 
             //// GIVE INFO TO RoleVm (JUST SHOW NEEDED FIELD)
@@ -137,6 +138,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
         [ClaimRequirement(FunctionCode.SYSTEM_ROLE, CommandCode.CREATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PostRole(RoleCreateRequest request)
         {
             //// CREATE A INSTANCE OF ROLE WITH INFO IS INPUT DATA
@@ -157,7 +159,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             else
             {
-                return BadRequest(result.Errors);
+                return BadRequest(new ApiBadRequestResponse(result));
             }
         }
 
@@ -170,12 +172,13 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{id}")]
         [ClaimRequirement(FunctionCode.SYSTEM_ROLE, CommandCode.UPDATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PutRole(string id, RoleCreateRequest request)
         {
             //// IF ID(request.ID) INPUT AND id (KEY OF ROLE WHICH NEED UPDATE) ARE DIFFERENT, RETURN STATUS 400 
             if (id != request.Id)
             {
-                return BadRequest();
+                return BadRequest(new ApiBadRequestResponse("Role id not match"));
             }
 
             //// GET ROLE WITH ID
@@ -184,7 +187,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF ID IS NOT EXIST (ROLE IS NULL), RETURN STATUS 404
             if (role == null)
             {
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot find role with id: {id}"));
             }
 
             //// GIVE INPUT DATA FOR EACH FIELD OF OBJECT WHICH NEED UPDATE INFOMATIONS
@@ -200,7 +203,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return NoContent();
             }
 
-            return BadRequest(result.Errors);
+            return BadRequest(new ApiBadRequestResponse(result));
         }
 
         /// <summary>
@@ -219,7 +222,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF KEY IS NOT EXIST (ROLE IS NULL), RETURN STATUS 404
             if (role == null)
             {
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot find role with id: {id}"));
             }
 
             //// DELETE ROLE FROM DATATABLE IN DATABASE AND SAVE CHANGE
@@ -236,7 +239,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return Ok(roleVm);
             }
 
-            return BadRequest(result.Errors);
+            return BadRequest(new ApiBadRequestResponse(result));
         }
         #endregion
 
@@ -274,6 +277,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{roleId}/permissions")]
         [ClaimRequirement(FunctionCode.SYSTEM_PERMISSION, CommandCode.UPDATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PutPermissionByRoleId(string roleId, [FromBody] UpdatePermissionRequest request)
         {
             //create new permission list from user changed
@@ -297,7 +301,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NoContent();
             }
-            return BadRequest();
+            return BadRequest(new ApiBadRequestResponse("Save permission failed"));
         }
         #endregion
     }

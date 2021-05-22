@@ -1,5 +1,6 @@
 ﻿using KnowledgeSpace.BackendServer.Authorization;
 using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
@@ -95,7 +96,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var category = await _context.Categories.FindAsync(id);
             //// IF KEY IS NOT EXIST (CATEGORY IS NULL), RETURN STATUS 404
             if (category == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Category with id: {id} is not found"));
 
             //// GIVE INFORMATIONS TO CategoryVm (JUST SHOW FIELD NEEDED
             CategoryVm categoryvm = CreateCategoryVm(category);
@@ -109,6 +110,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
         [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.CREATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PostCategory([FromBody] CategoryCreateRequest request)
         {
             //// CREATE A CONSTANCE OF CATEGORY WITH INFORS ARE INPUT DATA
@@ -132,7 +134,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             else
             {
-                return BadRequest();
+                return BadRequest(new ApiBadRequestResponse("Create category failed"));
             }
         }
 
@@ -144,18 +146,19 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{id}")]
         [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.UPDATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PutCategory(int id, [FromBody] CategoryCreateRequest request)
         {
             //// GET CATEGORY WITH ID (KEY)
             var category = await _context.Categories.FindAsync(id);
             //// IF KEY NOT EXIST (CATEGORY IS NULL), RETURN STATUS 404
             if (category == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Category with id: {id} is not found"));
 
             //// IF ID EQUAL PARENT_ID, RETURN STATUS 400 (THIS CATEGORY CANNOT BE A CHILD ITSELFT)
             if (id == request.ParentId)
             {
-                return BadRequest("Category cannot be a child itself.");
+                return BadRequest(new ApiBadRequestResponse("Category cannot be a child itself."));
             }
 
             //// GIVE INPUT DATA FOR EACH FIELD OF OBJECT WHICH NEED UPDATE INFOMATIONS
@@ -174,7 +177,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NoContent();
             }
-            return BadRequest();
+            return BadRequest(new ApiBadRequestResponse("Update category failed"));
         }
 
         /// <summary>
@@ -190,7 +193,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var category = await _context.Categories.FindAsync(id);
             //// IF KEY NOT EXIST (CATEGORY IS NULL), RETURN STATUS 404
             if (category == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Category with id: {id} is not found"));
 
             //// REMOVE CATEGORY FROM DATABASE AND SAVE CHANGE
             _context.Categories.Remove(category);
@@ -201,7 +204,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 CategoryVm categoryvm = CreateCategoryVm(category);
                 return Ok(categoryvm);
             }
-            return BadRequest();
+            return BadRequest(new ApiBadRequestResponse("Delete category failed"));
         }
 
         /// <summary>

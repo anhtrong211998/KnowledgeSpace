@@ -1,5 +1,6 @@
 ﻿using KnowledgeSpace.BackendServer.Authorization;
 using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
@@ -127,7 +128,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// IF KEY IS NOT EXIST (USER IS NULL), RETURN STATUS 404
             if (user == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found user with id: {id}"));
 
             //// GIVE INFO INTO UserVn (JUST SHOW NEEDED FIELD)
             var userVm = new UserVm()
@@ -152,6 +153,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS CODE.</returns>
         [HttpPost]
         [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.CREATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PostUser(UserCreateRequest request)
         {
             //// CREATE NEW INSTANCE OF USER WITH INFO IS INPUT DATA
@@ -176,7 +178,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             else
             {
-                return BadRequest(result.Errors);
+                return BadRequest(new ApiBadRequestResponse(result));
             }
         }
 
@@ -189,6 +191,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS CODE.</returns>
         [HttpPut("{id}")]
         [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.UPDATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PutUser(string id, [FromBody] UserCreateRequest request)
         {
             //// GET USER WITH ID (KEY)
@@ -197,7 +200,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF KEY IS NOT EXIST (USER IS NULL), RETURN STATUS 404
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found user with id: {id}"));
             }
 
             //// GIVE INPUT DATA FOR EACH FIELD OF OBJECT WHICH NEED UPDATE INFOMATIONS
@@ -213,7 +216,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NoContent();
             }
-            return BadRequest(result.Errors);
+            return BadRequest(new ApiBadRequestResponse(result));
         }
 
         /// <summary>
@@ -224,6 +227,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns></returns>
         [HttpPut("{id}/change-password")]
         [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.UPDATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PutUserPassword(string id, [FromBody] UserPasswordChangeRequest request)
         {
             //// GET USER WITH ID (KEY)
@@ -232,7 +236,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF KEY IS NOT EXSIST (USER IS NULL), RETURN STATUS 404
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found user with id: {id}"));
             }
 
             //// CHANGE PASSWORD USE SERVICE OF IDENTITYSERVER4
@@ -243,7 +247,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NoContent();
             }
-            return BadRequest(result.Errors);
+            return BadRequest(new ApiBadRequestResponse(result));
         }
 
         /// <summary>
@@ -262,7 +266,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF KEY IS NOT EXIST (USER IS NULL), RETURN STATUS 404
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found user with id: {id}"));
             }
 
             //// DELETE USER FROM DATATABLE IN DATABASE AND SAVE CHANGE
@@ -283,7 +287,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 };
                 return Ok(uservm);
             }
-            return BadRequest(result.Errors);
+            return BadRequest(new ApiBadRequestResponse(result));
         }
         #endregion
 

@@ -262,7 +262,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
                 SortOrder = 6,
                 Url = "/PutFunction_ValidInput_Failed"
             });
-            Assert.IsType<NotFoundResult>(result);
+            Assert.IsType<NotFoundObjectResult>(result);
         }
         #endregion
 
@@ -299,7 +299,7 @@ namespace KnowledgeSpace.BackendServer.UnitTest.ControllerTests
         {
             var functionsController = new FunctionsController(_context);
             var result = await functionsController.DeleteFunction("DeleteFunction_ValidInput_Failed");
-            Assert.IsType<NotFoundResult>(result);
+            Assert.IsType<NotFoundObjectResult>(result);
         }
         #endregion
     }

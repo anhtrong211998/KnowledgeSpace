@@ -1,5 +1,6 @@
 ﻿using KnowledgeSpace.BackendServer.Authorization;
 using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
@@ -116,7 +117,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// IF KEY NOT EXIST (FUNCTION IS NULL), RETURN STATUS IS 404
             if (function == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found function with id {id}"));
 
             //// GIVE INFO INTO FunctionVm (JUST SHOW NEEDED FIELD)
             var functionVm = new FunctionVm()
@@ -139,6 +140,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
         [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.CREATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PostFunction([FromBody] FunctionCreateRequest request)
         {
             //// GET FUNCTION WITH ID (KEY)
@@ -147,7 +149,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT NOT NULL, FUNCTION ALREADY EXISTS, RETURN STATUS 400
             if (dbFunction != null)
             {
-                return BadRequest($"Function with key {request.Id} is already exists!");
+                return BadRequest(new ApiBadRequestResponse($"Function with id {request.Id} is existed."));
+
             }
             //// CREATE A INSTANCE OF FUNCTION WITH INFO IS INPUT DATA
             var function = new Function()
@@ -170,7 +173,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             else
             {
-                return BadRequest();
+                return BadRequest(new ApiBadRequestResponse("Create function is failed"));
             }
         }
 
@@ -183,6 +186,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{id}")]
         [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.UPDATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PutFunction(string id, [FromBody] FunctionCreateRequest request)
         {
             //// GET FUNCTION WITH ID (KEY)
@@ -190,7 +194,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// IF KEY IS NOT EXIST (FUNCTION IS NULL), RETURN STATUS 404
             if (function == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found function with id {id}"));
 
             //// GIVE INPUT DATA FOR EACH FIELD OF OBJECT WHICH NEED UPDATE INFOMATIONS
             function.Name = request.Name;
@@ -207,7 +211,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NoContent();
             }
-            return BadRequest();
+            return BadRequest(new ApiBadRequestResponse("Create function failed"));
         }
 
         /// <summary>
@@ -225,7 +229,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// IF KEY IS NOT EXIST (FUNCTION IS NULL), RETURN STATUS 404
             if (function == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found function with id {id}"));
 
             //// DELETE FUNCTION FROM DATASET (DATABASE INSTANCE) AND SAVE CHANGE
             _context.Functions.Remove(function);
@@ -245,7 +249,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 };
                 return Ok(functionvm);
             }
-            return BadRequest();
+            return BadRequest(new ApiBadRequestResponse("Delete function failed"));
         }
         #endregion
 
@@ -329,6 +333,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPost("{functionId}/commands")]
         [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.CREATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PostCommandToFunction(string functionId, [FromBody] AddCommandToFunctionRequest request)
         {
             //// GET COMMAND BY FUNCTION (CommandId,FunctionId)
@@ -337,7 +342,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT NOT NULL, COMMAND ALREADY EXIST, CREATE FAILED, RETURN STATUS 400
             if (commandInFunction != null)
             {
-                return BadRequest($"This command has been added to function");
+                return BadRequest(new ApiBadRequestResponse($"This command has been added to function"));
             }
 
             //// CREATE NEW INSTANCE OF COMMAND IN FUNCTION
@@ -358,7 +363,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             else
             {
-                return BadRequest();
+                return BadRequest(new ApiBadRequestResponse("Add command to function failed"));
             }
         }
 
@@ -378,7 +383,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// IF RESULT IS NULL, RETURN STATUS 404
             if (commandInFunction == null)
-                return BadRequest($"This command is not existed in function");
+                return BadRequest(new ApiBadRequestResponse($"This command is not existed in function"));
 
             //// CREATE NEW INSTANCE OF COMMAND IN FUNCTION
             var entity = new CommandInFunction()
@@ -398,7 +403,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             else
             {
-                return BadRequest();
+                return BadRequest(new ApiBadRequestResponse("Delete command to function failed"));
             }
         }
         #endregion

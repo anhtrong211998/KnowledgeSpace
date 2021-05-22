@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeSpace.BackendServer.Controllers
 {
-    public class KnowledgeBasesController : BaseController
+    public partial class KnowledgeBasesController : BaseController
     {
         private readonly KnowledgeSpaceContext _context;
         private readonly ISequenceService _sequenceService;
@@ -122,7 +122,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// IF KEY IS NOT EXIST (RESULT IS NULL), RETURN STATUS 404
             if (knowledgeBase == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found knowledge base with id: {id}"));
 
             //// GIVE INFO KnowledgeBaseVm (JUST SHOW NEEDED FIELDS)
             var knowledgeBaseVm = CreateKnowledgeBaseVm(knowledgeBase);
@@ -136,34 +136,11 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
         [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.CREATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PostKnowledgeBase([FromForm] KnowledgeBaseCreateRequest request)
         {
             //// CREATE NEW INSTANCE OF KNOWLEDGE BASE WITH INFOS ARE INPUT DATA
-            var knowledgeBase = new KnowledgeBase()
-            {
-                CategoryId = request.CategoryId,
-
-                Title = request.Title,
-
-                SeoAlias = request.SeoAlias,
-
-                Description = request.Description,
-
-                Environment = request.Environment,
-
-                Problem = request.Problem,
-
-                StepToReproduce = request.StepToReproduce,
-
-                ErrorMessage = request.ErrorMessage,
-
-                Workaround = request.Workaround,
-
-                Note = request.Note,
-
-                Labels = request.Labels,
-            };
-
+            KnowledgeBase knowledgeBase = CreateKnowledgeBaseEntity(request);
             knowledgeBase.Id = await _sequenceService.GetKnowledgeBaseNewId();
 
             //// PROCESS ATTACHMENT
@@ -195,7 +172,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             else
             {
-                return BadRequest();
+                return BadRequest(new ApiBadRequestResponse("Create knowledge base failed"));
             }
         }
 
@@ -207,6 +184,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpPut("{id}")]
         [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.UPDATE)]
+        [ApiValidationFilter]
         public async Task<IActionResult> PutKnowledgeBase(int id, [FromBody] KnowledgeBaseCreateRequest request)
         {
             //// GET KNOWLEDGE BASE WITH ID (KEY)
@@ -214,30 +192,10 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// IF KEY IS NOT EXIST (RESULT IS NULL), RETURN STATUS 404
             if (knowledgeBase == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found knowledge base with id {id}"));
 
             //// GIVE INPUT DATA FOR EACH FIELD OF OBJECT WHICH NEED UPDATE INFOMATIONS
-            knowledgeBase.CategoryId = request.CategoryId;
-
-            knowledgeBase.Title = request.Title;
-
-            knowledgeBase.SeoAlias = request.SeoAlias;
-
-            knowledgeBase.Description = request.Description;
-
-            knowledgeBase.Environment = request.Environment;
-
-            knowledgeBase.Problem = request.Problem;
-
-            knowledgeBase.StepToReproduce = request.StepToReproduce;
-
-            knowledgeBase.ErrorMessage = request.ErrorMessage;
-
-            knowledgeBase.Workaround = request.Workaround;
-
-            knowledgeBase.Note = request.Note;
-
-            knowledgeBase.Labels = request.Labels;
+            UpdateKnowledgeBase(request, knowledgeBase);
 
             //// PROCESS LABEL
             if (!string.IsNullOrEmpty(request.Labels))
@@ -254,7 +212,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return NoContent();
             }
-            return BadRequest();
+            return BadRequest(new ApiBadRequestResponse($"Update knowledge base failed"));
         }
 
         /// <summary>
@@ -271,7 +229,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// IF KEY IS NOT EXIST (RESULT IS NULL), RETURN STATUS 404
             if (knowledgeBase == null)
-                return NotFound();
+                return NotFound(new ApiNotFoundResponse($"Cannot found knowledge base with id {id}"));
 
             //// DELETE KNOWLEDGE BASE FROM DATABASE AND SAVE CHANGE
             _context.KnowledgeBases.Remove(knowledgeBase);
@@ -283,9 +241,17 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 KnowledgeBaseVm knowledgeBasevm = CreateKnowledgeBaseVm(knowledgeBase);
                 return Ok(knowledgeBasevm);
             }
-            return BadRequest();
+            return BadRequest(new ApiBadRequestResponse($"Delete knowledge base failed"));
         }
+        #endregion
 
+        #region PRIVATE METHOD
+        /// <summary>
+        /// SAVE FILE (ATTACHMENT) PROCESS 
+        /// </summary>
+        /// <param name="knowledegeBaseId">KEY OF KNOWLEDGE BASE</param>
+        /// <param name="file">IFormFile</param>
+        /// <returns></returns>
         private async Task<Attachment> SaveFile(int knowledegeBaseId, IFormFile file)
         {
             //// GET RAW NAME OF FILE
@@ -389,529 +355,67 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
         }
 
-        #endregion
-
-        #region COMMENT MANAGERMENT
         /// <summary>
-        /// GET COMMENTS OF KNOWLEDGE BASE WITH FILTER (KEYWORD SEARCH).
+        /// CREATE A CONSTANCE OF KNOWLEDGE BASE
         /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <param name="filter">KEYWORD SEARCH.</param>
-        /// <param name="pageIndex">INDEX OF NEXT PAGE.</param>
-        /// <param name="pageSize">NUMBER OF RECORDS IN EACH PAGE.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpGet("{knowledgeBaseId}/comments/filter")]
-        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.VIEW)]
-        public async Task<IActionResult> GetCommentsPaging(int knowledgeBaseId, string filter, int pageIndex, int pageSize)
+        /// <param name="request">KnowledgeBaseCreateRequest</param>
+        /// <returns>KnowledgeBase</returns>
+        private static KnowledgeBase CreateKnowledgeBaseEntity(KnowledgeBaseCreateRequest request)
         {
-            //// GET ALL COMMENTS OF KNOWLEDGE BASE
-            var query = _context.Comments.Where(x => x.KnowledgeBaseId == knowledgeBaseId).AsQueryable();
-            //// IF KEYWORD NOT NULL OR EMPTY, GET ALL COMMENTS WHICH CONSTAINS KEYWORD
-            if (!string.IsNullOrEmpty(filter))
+            return new KnowledgeBase()
             {
-                query = query.Where(x => x.Content.Contains(filter));
-            }
+                CategoryId = request.CategoryId,
 
-            //// TOTAL RECORDS EQUAL NUMBER OF COMMENTS's ROWS
-            var totalRecords = await query.CountAsync();
+                Title = request.Title,
 
-            //// TAKE RECORDS IN THE PAGE (NEXT PAGE) AND GIVE INFORMATIONS TO CommentVm (JUST SHOW FIELD NEEDED)
-            var items = await query.Skip((pageIndex - 1 * pageSize))
-                .Take(pageSize)
-                .Select(c => new CommentVm()
-                {
-                    Id = c.Id,
-                    Content = c.Content,
-                    CreateDate = c.CreateDate,
-                    KnowledgeBaseId = c.KnowledgeBaseId,
-                    LastModifiedDate = c.LastModifiedDate,
-                    OwnwerUserId = c.OwnwerUserId
-                })
-                .ToListAsync();
-            //// PAGINATION
-            var pagination = new Pagination<CommentVm>
-            {
-                Items = items,
-                TotalRecords = totalRecords,
+                SeoAlias = request.SeoAlias,
+
+                Description = request.Description,
+
+                Environment = request.Environment,
+
+                Problem = request.Problem,
+
+                StepToReproduce = request.StepToReproduce,
+
+                ErrorMessage = request.ErrorMessage,
+
+                Workaround = request.Workaround,
+
+                Note = request.Note,
+
+                Labels = request.Labels,
             };
-            return Ok(pagination);
         }
 
         /// <summary>
-        /// GET COMMENT DETAIL.
+        /// MAPPING FIELDS DATA OF KNOWLEDGE BASE
         /// </summary>
-        /// <param name="commentId">KEY OF COMMENT.</param>
-        /// <returns>HTTP STATUS WITH COMMENT's INFORMATION.</returns>
-        [HttpGet("{knowledgeBaseId}/comments/{commentId}")]
-        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.VIEW)]
-        public async Task<IActionResult> GetCommentDetail(int commentId)
+        /// <param name="request">KnowledgeBaseCreateRequest</param>
+        /// <param name="knowledgeBase">KnowledgeBase</param>
+        private static void UpdateKnowledgeBase(KnowledgeBaseCreateRequest request, KnowledgeBase knowledgeBase)
         {
-            //// GET COMMENT WITH ID (KEY)
-            var comment = await _context.Comments.FindAsync(commentId);
-            //// IF KEY NOT EXIST (COMMENT IS NULL), RETURN STATUS 404
-            if (comment == null)
-                return NotFound();
+            knowledgeBase.CategoryId = request.CategoryId;
 
-            //// CREATE A CONSTANCE OF COMMENT JUST SHOW NEEDED FIELD
-            var commentVm = new CommentVm()
-            {
-                Id = comment.Id,
-                Content = comment.Content,
-                CreateDate = comment.CreateDate,
-                KnowledgeBaseId = comment.KnowledgeBaseId,
-                LastModifiedDate = comment.LastModifiedDate,
-                OwnwerUserId = comment.OwnwerUserId
-            };
+            knowledgeBase.Title = request.Title;
 
-            return Ok(commentVm);
-        }
+            knowledgeBase.SeoAlias = request.SeoAlias;
 
-        /// <summary>
-        /// CREATE NEW COMMENT.
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <param name="request">INPUT DATA.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpPost("{knowledgeBaseId}/comments")]
-        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.CREATE)]
-        public async Task<IActionResult> PostComment(int knowledgeBaseId, [FromBody] CommentCreateRequest request)
-        {
-            //// CREATE NEW CONSTANCE OF COMMENT WITH INFORMATION ARE INPUT DATA
-            var comment = new Comment()
-            {
-                Content = request.Content,
-                KnowledgeBaseId = request.KnowledgeBaseId,
-                OwnwerUserId = string.Empty/*TODO: GET USER FROM CLAIM*/,
-            };
+            knowledgeBase.Description = request.Description;
 
-            //// INSERT NEW COMMENT
-            _context.Comments.Add(comment);
-            //// GET KNOWLEDGE BASE WITH ID (KEY), IF KEY NOT EXIST RETURN STATUS 404
-            var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
-            if (knowledgeBase == null)
-                return BadRequest();
+            knowledgeBase.Environment = request.Environment;
 
-            //// UPDATE NUMBER OF COMMENTS INCREASE 1 AND SAVE CHANGE
-            knowledgeBase.NumberOfComments = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) + 1;
-            _context.KnowledgeBases.Update(knowledgeBase);
-            var result = await _context.SaveChangesAsync();
+            knowledgeBase.Problem = request.Problem;
 
-            //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 201, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                return CreatedAtAction(nameof(GetCommentDetail), new { id = knowledgeBaseId, commentId = comment.Id }, request);
-            }
-            else
-            {
-                return BadRequest();
-            }
-        }
+            knowledgeBase.StepToReproduce = request.StepToReproduce;
 
-        /// <summary>
-        /// UPDATE COMMENT WITH ID (KEY).
-        /// </summary>
-        /// <param name="commentId">KEY OF COMMENT.</param>
-        /// <param name="request">INPUT DATA.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpPut("{knowledgeBaseId}/comments/{commentId}")]
-        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.UPDATE)]
-        public async Task<IActionResult> PutComment(int commentId, [FromBody] CommentCreateRequest request)
-        {
-            //// GET COMMENT WITH ID (KEY)
-            var comment = await _context.Comments.FindAsync(commentId);
-            //// IF KEY IS NOT EXIST (COMMENT IS NULL), RETURN STATUS 404
-            if (comment == null)
-                return NotFound();
-            //// IF OWNWER USER DIFFERENT CURRENT USER, RETURN STATUS 403
-            if (comment.OwnwerUserId != User.Identity.Name)
-                return Forbid();
+            knowledgeBase.ErrorMessage = request.ErrorMessage;
 
-            //// UPDATE INFORMATION AND SAVE CHANGE
-            comment.Content = request.Content;
-            _context.Comments.Update(comment);
-            var result = await _context.SaveChangesAsync();
+            knowledgeBase.Workaround = request.Workaround;
 
-            //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 204, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                return NoContent();
-            }
-            return BadRequest();
-        }
+            knowledgeBase.Note = request.Note;
 
-        /// <summary>
-        /// DELETE COMMENT WITH ID (KEY).
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <param name="commentId">KEY OF COMMENT.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpDelete("{knowledgeBaseId}/comments/{commentId}")]
-        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.DELETE)]
-        public async Task<IActionResult> DeleteComment(int knowledgeBaseId, int commentId)
-        {
-            //// GET COMMENT WITH ID (KEY), IF KEY IS NOT EXIST, RETURN STATUS 404
-            var comment = await _context.Comments.FindAsync(commentId);
-            if (comment == null)
-                return NotFound();
-
-            //// REMOVE COMMENT
-            _context.Comments.Remove(comment);
-
-            //// GET KNOWLEDGE BASE WITH ID, IF NULL, RETURN STATUS 400
-            var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
-            if (knowledgeBase == null)
-                return BadRequest();
-
-            //// UPDATE NUMBER OF COMMENT IS DECREASE 1 AND SAVE CHANGE
-            knowledgeBase.NumberOfComments = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) - 1;
-            _context.KnowledgeBases.Update(knowledgeBase);
-            var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER DELETE IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                var commentVm = new CommentVm()
-                {
-                    Id = comment.Id,
-                    Content = comment.Content,
-                    CreateDate = comment.CreateDate,
-                    KnowledgeBaseId = comment.KnowledgeBaseId,
-                    LastModifiedDate = comment.LastModifiedDate,
-                    OwnwerUserId = comment.OwnwerUserId
-                };
-                return Ok(commentVm);
-            }
-            return BadRequest();
-        }
-        #endregion
-
-        #region VOTES MANAGERMENT
-        /// <summary>
-        /// GET ALL VOTES OF KNOWLEDGE BASE.
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpGet("{knowledgeBaseId}/votes")]
-        public async Task<IActionResult> GetVotes(int knowledgeBaseId)
-        {
-            //// GET ALL VOTE WITH CONDITION KNOWLEDGEBASE_ID OF VOTE EQUAL ID OF KNOWLEDGE BASE
-            var votes = await _context.Votes
-                .Where(x => x.KnowledgeBaseId == knowledgeBaseId)
-                .Select(x => new VoteVm()
-                {
-                    UserId = x.UserId,
-                    KnowledgeBaseId = x.KnowledgeBaseId,
-                    CreateDate = x.CreateDate
-                }).ToListAsync();
-            return Ok(votes);
-        }
-
-        /// <summary>
-        /// CREATE NEW VOTE.
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <param name="request">INPUT DATA.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpPost("{knowledgeBaseId}/votes")]
-        public async Task<IActionResult> PostVote(int knowledgeBaseId, [FromBody] VoteCreateRequest request)
-        {
-            //// GET VOTE WITH ID AND  USER ID (KEY), IF KEY EXIST RETURN STATUS 400
-            var vote = await _context.Votes.FindAsync(knowledgeBaseId, request.UserId);
-            if (vote != null)
-                return BadRequest("This user has been voted for this KB");
-
-            //// CREATE A CONSTANCE OF VOTE
-            vote = new Vote()
-            {
-                KnowledgeBaseId = knowledgeBaseId,
-                UserId = request.UserId
-            };
-
-            //// INSERT INTO DATABASE
-            _context.Votes.Add(vote);
-
-            //// GET KNOWLEDGE BASE WITH ID, IF NULL RETURN STATUS 400
-            var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
-            if (knowledgeBase == null)
-                return BadRequest();
-            //// UPDATE NUMBER OF VOTES INCREASE 1 AND  SAVE CHANGE
-            knowledgeBase.NumberOfVotes = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) + 1;
-            _context.KnowledgeBases.Update(knowledgeBase);
-            var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 204, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                return NoContent();
-            }
-            else
-            {
-                return BadRequest();
-            }
-        }
-
-        /// <summary>
-        /// DELETE VOTE.
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <param name="userId">CURRENT USE LOGIN.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpDelete("{knowledgeBaseId}/votes/{userId}")]
-        public async Task<IActionResult> DeleteVote(int knowledgeBaseId, string userId)
-        {
-            //// GET VOTE WITH ID AND  USER ID (KEY), IF KEY EXIST RETURN STATUS 400
-            var vote = await _context.Votes.FindAsync(knowledgeBaseId, userId);
-            if (vote == null)
-                return NotFound();
-            //// GET KNOWLEDGE BASE WITH ID, IF NULL RETURN STATUS 400
-            var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
-            if (knowledgeBase == null)
-                return BadRequest();
-
-            //// UPDATE NUMBER OF VOTES DECREASE 1 
-            knowledgeBase.NumberOfVotes = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) - 1;
-            _context.KnowledgeBases.Update(knowledgeBase);
-
-            //// REMOVE VOTE AND  SAVE CHANGE
-            _context.Votes.Remove(vote);
-            var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER DELETE IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                return Ok();
-            }
-            return BadRequest();
-        }
-        #endregion
-
-        #region REPORTS MANAGEMENT
-        /// <summary>
-        /// GET ALL REPORTS OF KNOWLEDGE BASE.
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <param name="filter">KEYWORD SEARCH.</param>
-        /// <param name="pageIndex">INDEX OF NEXT PAGE.</param>
-        /// <param name="pageSize">NUMBER OF RECORDS IN EACH PAGE.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpGet("{knowledgeBaseId}/reports/filter")]
-        public async Task<IActionResult> GetReportsPaging(int knowledgeBaseId, string filter, int pageIndex, int pageSize)
-        {
-            //// GET ALL REPORT OF KNOWLEDGE BASE
-            var query = _context.Reports.Where(x => x.KnowledgeBaseId == knowledgeBaseId).AsQueryable();
-            //// IF KEYSEARCH IS NOT NULL OR EMPTY, GET RECORDS WHICH CONSTAINS KEYWORD
-            if (!string.IsNullOrEmpty(filter))
-            {
-                query = query.Where(x => x.Content.Contains(filter));
-            }
-
-            //// TOTAL RECORDS IS NUMBER OF REPROTS's ROWS
-            var totalRecords = await query.CountAsync();
-
-            //// TAKE RECORDS IN THE PAGE (NEXT PAGE)
-            var items = await query.Skip((pageIndex - 1 * pageSize))
-                .Take(pageSize)
-                .Select(c => new ReportVm()
-                {
-                    Id = c.Id,
-                    Content = c.Content,
-                    CreateDate = c.CreateDate,
-                    KnowledgeBaseId = c.KnowledgeBaseId,
-                    LastModifiedDate = c.LastModifiedDate,
-                    IsProcessed = false,
-                    ReportUserId = c.ReportUserId
-                })
-                .ToListAsync();
-
-            //// PAGINATION
-            var pagination = new Pagination<ReportVm>
-            {
-                Items = items,
-                TotalRecords = totalRecords,
-            };
-            return Ok(pagination);
-        }
-
-        /// <summary>
-        /// GET REPORT DETAIL.
-        /// </summary>
-        /// <param name="reportId">KEY OF REPORT.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpGet("{knowledgeBaseId}/reports/{reportId}")]
-        public async Task<IActionResult> GetReportDetail(int reportId)
-        {
-            //// GET REPORT WITH KEY, IF KEY NOT EXIST RETURN STATUS 404
-            var report = await _context.Reports.FindAsync(reportId);
-            if (report == null)
-                return NotFound();
-
-            //// GIVE INFORMATIONS TO ReportVm (JUST SHOW FIELD NEEDED
-            var reportVm = new ReportVm()
-            {
-                Id = report.Id,
-                Content = report.Content,
-                CreateDate = report.CreateDate,
-                KnowledgeBaseId = report.KnowledgeBaseId,
-                LastModifiedDate = report.LastModifiedDate,
-                IsProcessed = report.IsProcessed,
-                ReportUserId = report.ReportUserId
-            };
-
-            return Ok(reportVm);
-        }
-
-        /// <summary>
-        /// CREATE NEW REPORT.
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <param name="request">INPUT DATA.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpPost("{knowledgeBaseId}/reports")]
-        public async Task<IActionResult> PostReport(int knowledgeBaseId, [FromBody] ReportCreateRequest request)
-        {
-            //// CREATE A CONSTANCE OF REPORT WITH INFORS ARE INPUT DATA
-            var report = new Report()
-            {
-                Content = request.Content,
-                KnowledgeBaseId = knowledgeBaseId,
-                ReportUserId = request.ReportUserId,
-                IsProcessed = false
-            };
-
-            //// INSERT NEW REPORT INTO DATABASE
-            _context.Reports.Add(report);
-
-            //// GET KNOWLEDGE BASE WITH ID, IF KEY NOT EXIST RETURN STATUS 400
-            var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
-            if (knowledgeBase == null)
-                return BadRequest();
-            //// UPDATE NUMBER OF REPORT IS INCREASE 1 AND SAVE CHANGES
-            knowledgeBase.NumberOfReports = knowledgeBase.NumberOfReports.GetValueOrDefault(0) + 1;
-            _context.KnowledgeBases.Update(knowledgeBase);
-            var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                return Ok();
-            }
-            else
-            {
-                return BadRequest();
-            }
-        }
-
-        /// <summary>
-        /// UPDATE REPORT.
-        /// </summary>
-        /// <param name="reportId">KEY OF REPORT.</param>
-        /// <param name="request">INPUT DATA.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpPut("{knowledgeBaseId}/reports/{reportId}")]
-        public async Task<IActionResult> PutReport(int reportId, [FromBody] CommentCreateRequest request)
-        {
-            //// GET REPORT WITH KEY, IF KEY NOT EXIST, RETURN STATUS 404
-            var report = await _context.Reports.FindAsync(reportId);
-            if (report == null)
-                return NotFound();
-
-            //// IF REPORT USER DIFFERENT CURRENT USER, RETURN STATUS 403
-            if (report.ReportUserId != User.Identity.Name)
-                return Forbid();
-
-            //// UPDATE INFORMATION AND SAVE CHANGE
-            report.Content = request.Content;
-            _context.Reports.Update(report);
-            var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 204, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                return NoContent();
-            }
-            return BadRequest();
-        }
-
-        /// <summary>
-        /// DELETE REPORT.
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
-        /// <param name="reportId">KEY OF REPORT.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpDelete("{knowledgeBaseId}/reports/{reportId}")]
-        public async Task<IActionResult> DeleteReport(int knowledgeBaseId, int reportId)
-        {
-            //// GET REPORT WITH KEY, IF KEY NOT EXSIT RETURN STATUS 404
-            var report = await _context.Reports.FindAsync(reportId);
-            if (report == null)
-                return NotFound();
-            //// REMOVE REPORT
-            _context.Reports.Remove(report);
-            //// GET KNOWLEDGE BASE WITH KEY, IF KEY NOT EXIST, RETURN STATUS 400
-            var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
-            if (knowledgeBase == null)
-                return BadRequest();
-
-            //// UPDATE NUMBER OF REPORTS IS DECREASE 1 AND SAVE CHANGES
-            knowledgeBase.NumberOfReports = knowledgeBase.NumberOfReports.GetValueOrDefault(0) - 1;
-            _context.KnowledgeBases.Update(knowledgeBase);
-            var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER DELETE IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                return Ok();
-            }
-            return BadRequest();
-        }
-        #endregion
-
-        #region ATTACHMENT MANAGEMENT
-        /// <summary>
-        /// GET ATTACHMENTs OF KNOWLEDGE BASE
-        /// </summary>
-        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE</param>
-        /// <returns>HTTP STATUS</returns>
-        [HttpGet("{knowledgeBaseId}/attachments")]
-        public async Task<IActionResult> GetAttachment(int knowledgeBaseId)
-        {
-            var query = await _context.Attachments
-                .Where(x => x.KnowledgeBaseId == knowledgeBaseId)
-                .Select(c => new AttachmentVm()
-                {
-                    Id = c.Id,
-                    LastModifiedDate = c.LastModifiedDate,
-                    CreateDate = c.CreateDate,
-                    FileName = c.FileName,
-                    FilePath = c.FilePath,
-                    FileSize = c.FileSize,
-                    FileType = c.FileType,
-                    KnowledgeBaseId = (int)c.KnowledgeBaseId
-                }).ToListAsync();
-
-            return Ok(query);
-        }
-
-        /// <summary>
-        /// DELETE ATTACHMENT WITH ID.
-        /// </summary>
-        /// <param name="attachmentId">KEY OF ATTACHMENT</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpDelete("{knowledgeBaseId}/attachments/{attachmentId}")]
-        public async Task<IActionResult> DeleteAttachment(int attachmentId)
-        {
-            var attachment = await _context.Attachments.FindAsync(attachmentId);
-            if (attachment == null)
-                return NotFound();
-
-            _context.Attachments.Remove(attachment);
-
-            var result = await _context.SaveChangesAsync();
-            if (result > 0)
-            {
-                return Ok();
-            }
-            return BadRequest();
+            knowledgeBase.Labels = request.Labels;
         }
         #endregion
     }

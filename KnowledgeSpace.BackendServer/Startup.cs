@@ -20,6 +20,7 @@ using KnowledgeSpace.ViewModels.Validators;
 using KnowledgeSpace.BackendServer.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using KnowledgeSpace.BackendServer.IdentityServer;
+using KnowledgeSpace.BackendServer.Extensions;
 
 namespace KnowledgeSpace.BackendServer
 {
@@ -106,6 +107,10 @@ namespace KnowledgeSpace.BackendServer
             services.AddTransient<ISequenceService, SequenceService>();
 
             //// VALIDATOR USE FLUENT VALIDATOR LIBRARY
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
             services.AddControllersWithViews()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<RoleCreateRequestValidator>());
 
@@ -150,6 +155,7 @@ namespace KnowledgeSpace.BackendServer
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseErrorWrapping();
             //// IDENTITY4
             app.UseStaticFiles();
 
