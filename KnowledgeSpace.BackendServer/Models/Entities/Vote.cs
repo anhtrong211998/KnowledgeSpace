@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace KnowledgeSpace.BackendServer.Models.Entities
 {
     [Table("Votes")]
-    public class Vote : IDateTracking
+    public class Vote
     {
         public int KnowledgeBaseId { get; set; }
 
@@ -16,8 +16,6 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         public string UserId { get; set; }
 
         public DateTime CreateDate { get; set; }
-
-        public DateTime? LastModifiedDate { get; set; }
 
         [ForeignKey("KnowledgeBaseId")]
         public virtual KnowledgeBase KnowledgeBase { get; set; }

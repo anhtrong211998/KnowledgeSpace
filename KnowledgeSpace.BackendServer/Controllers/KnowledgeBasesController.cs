@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace KnowledgeSpace.BackendServer.Controllers
@@ -18,16 +20,19 @@ namespace KnowledgeSpace.BackendServer.Controllers
     {
         private readonly KnowledgeSpaceContext _context;
         private readonly ISequenceService _sequenceService;
+        private readonly IStorageService _storageService;
 
         /// <summary>
         /// CONSTRUCTOR CONTROLLER.
         /// </summary>
         /// <param name="context">DbContext.</param>
         public KnowledgeBasesController(KnowledgeSpaceContext context,
-            ISequenceService sequenceService)
+            ISequenceService sequenceService,
+            IStorageService storageService)
         {
             _context = context;
             _sequenceService = sequenceService;
+            _storageService = storageService;
         }
 
         #region KNOWLEDGE BASE MANAGERMENT
@@ -125,7 +130,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost]
-        public async Task<IActionResult> PostKnowledgeBase([FromBody] KnowledgeBaseCreateRequest request)
+        public async Task<IActionResult> PostKnowledgeBase([FromForm] KnowledgeBaseCreateRequest request)
         {
             //// CREATE NEW INSTANCE OF KNOWLEDGE BASE WITH INFOS ARE INPUT DATA
             var knowledgeBase = new KnowledgeBase()
@@ -154,6 +159,16 @@ namespace KnowledgeSpace.BackendServer.Controllers
             };
 
             knowledgeBase.Id = await _sequenceService.GetKnowledgeBaseNewId();
+
+            //// PROCESS ATTACHMENT
+            if (request.Attachments != null && request.Attachments.Count > 0)
+            {
+                foreach (var attachment in request.Attachments)
+                {
+                    var attachmentEntity = await SaveFile(knowledgeBase.Id, attachment);
+                    _context.Attachments.Add(attachmentEntity);
+                }
+            }
 
             _context.KnowledgeBases.Add(knowledgeBase);
 
@@ -261,6 +276,25 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return Ok(knowledgeBasevm);
             }
             return BadRequest();
+        }
+
+        private async Task<Attachment> SaveFile(int knowledegeBaseId, IFormFile file)
+        {
+            //// GET RAW NAME OF FILE
+            var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+            //// GENERATION NAME OF FILE
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
+            //// SAVE FILE
+            await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
+            var attachmentEntity = new Attachment()
+            {
+                FileName = fileName,
+                FilePath = _storageService.GetFileUrl(fileName),
+                FileSize = file.Length,
+                FileType = Path.GetExtension(fileName),
+                KnowledgeBaseId = knowledegeBaseId,
+            };
+            return attachmentEntity;
         }
 
         /// <summary>
@@ -554,8 +588,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 {
                     UserId = x.UserId,
                     KnowledgeBaseId = x.KnowledgeBaseId,
-                    CreateDate = x.CreateDate,
-                    LastModifiedDate = x.LastModifiedDate
+                    CreateDate = x.CreateDate
                 }).ToListAsync();
             return Ok(votes);
         }
@@ -812,6 +845,55 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var result = await _context.SaveChangesAsync();
 
             //// IF RESULT AFTER DELETE IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
+            if (result > 0)
+            {
+                return Ok();
+            }
+            return BadRequest();
+        }
+        #endregion
+
+        #region ATTACHMENT MANAGEMENT
+        /// <summary>
+        /// GET ATTACHMENTs OF KNOWLEDGE BASE
+        /// </summary>
+        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("{knowledgeBaseId}/attachments")]
+        public async Task<IActionResult> GetAttachment(int knowledgeBaseId)
+        {
+            var query = await _context.Attachments
+                .Where(x => x.KnowledgeBaseId == knowledgeBaseId)
+                .Select(c => new AttachmentVm()
+                {
+                    Id = c.Id,
+                    LastModifiedDate = c.LastModifiedDate,
+                    CreateDate = c.CreateDate,
+                    FileName = c.FileName,
+                    FilePath = c.FilePath,
+                    FileSize = c.FileSize,
+                    FileType = c.FileType,
+                    KnowledgeBaseId = (int)c.KnowledgeBaseId
+                }).ToListAsync();
+
+            return Ok(query);
+        }
+
+        /// <summary>
+        /// DELETE ATTACHMENT WITH ID.
+        /// </summary>
+        /// <param name="attachmentId">KEY OF ATTACHMENT</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpDelete("{knowledgeBaseId}/attachments/{attachmentId}")]
+        public async Task<IActionResult> DeleteAttachment(int attachmentId)
+        {
+            var attachment = await _context.Attachments.FindAsync(attachmentId);
+            if (attachment == null)
+                return NotFound();
+
+            _context.Attachments.Remove(attachment);
+
+            var result = await _context.SaveChangesAsync();
             if (result > 0)
             {
                 return Ok();

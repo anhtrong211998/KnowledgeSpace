@@ -101,11 +101,6 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CommentId");
@@ -246,9 +241,7 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
             modelBuilder.Entity("KnowledgeSpace.BackendServer.Models.Entities.KnowledgeBase", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
@@ -403,10 +396,6 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<string>("Type")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CommentId");
@@ -516,12 +505,6 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
 
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool?>("Status")
-                        .HasColumnType("bit");
 
                     b.HasKey("KnowledgeBaseId", "UserId");
 
