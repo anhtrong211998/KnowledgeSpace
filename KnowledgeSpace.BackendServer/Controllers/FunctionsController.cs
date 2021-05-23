@@ -80,7 +80,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var totalRecords = await query.CountAsync();
 
             //// TAKE RECORDS IN THE PAGE (NEXT PAGE)
-            var items = await query.Skip((pageIndex - 1 * pageSize))
+            var items = await query.Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .Select(u => new FunctionVm()
                 {
@@ -130,6 +130,32 @@ namespace KnowledgeSpace.BackendServer.Controllers
             };
 
             return Ok(functionVm);
+        }
+
+        /// <summary>
+        /// GET FUNCTIONS ON THE PARENT FUNCTION 
+        /// </summary>
+        /// <param name="functionId">KEY OF FUNCTION</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("{functionId}/parents")]
+        [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.VIEW)]
+        public async Task<IActionResult> GetFunctionsByParentId(string functionId)
+        {
+            //// GET ALL FUNCTION WITH PARENT_ID EQUAL FUNCTION ID
+            var functions = _context.Functions.Where(x => x.ParentId == functionId);
+
+            //// SELECT FIELDS NEEDED SHOW
+            var functionvms = await functions.Select(u => new FunctionVm()
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Url = u.Url,
+                SortOrder = u.SortOrder,
+                ParentId = u.ParentId,
+                Icon = u.Icon
+            }).ToListAsync();
+
+            return Ok(functionvms);
         }
 
         /// <summary>
@@ -233,6 +259,11 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             //// DELETE FUNCTION FROM DATASET (DATABASE INSTANCE) AND SAVE CHANGE
             _context.Functions.Remove(function);
+
+            //// REMOVE COMMAND OF FUNCTION
+            var commands = _context.CommandInFunctions.Where(x => x.FunctionId == id);
+            _context.CommandInFunctions.RemoveRange(commands);
+
             var result = await _context.SaveChangesAsync();
 
             //// IF RESULT AFTER DELETE IS GREATER THAN 0, DELETE SUCCESS AND RETURN STATUS 200 WITH INFO OF THIS FUNCTION
@@ -334,32 +365,50 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [HttpPost("{functionId}/commands")]
         [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.CREATE)]
         [ApiValidationFilter]
-        public async Task<IActionResult> PostCommandToFunction(string functionId, [FromBody] AddCommandToFunctionRequest request)
+        public async Task<IActionResult> PostCommandToFunction(string functionId, [FromBody] CommandAssignRequest request)
         {
-            //// GET COMMAND BY FUNCTION (CommandId,FunctionId)
-            var commandInFunction = await _context.CommandInFunctions.FindAsync(request.CommandId, request.FunctionId);
-
-            //// IF RESULT NOT NULL, COMMAND ALREADY EXIST, CREATE FAILED, RETURN STATUS 400
-            if (commandInFunction != null)
+            //// ADD EACH COMMAND TO FUNCTION
+            foreach (var commandId in request.CommandIds)
             {
-                return BadRequest(new ApiBadRequestResponse($"This command has been added to function"));
+                //// IF EXIST COMAND IN THIS FUNCTION, RETURN STATSU 400
+                if (await _context.CommandInFunctions.FindAsync(commandId, functionId) != null)
+                    return BadRequest(new ApiBadRequestResponse("This command has been existed in function"));
+
+                //// ADD NEW COMMAND TO THIS FUNCTION
+                var entity = new CommandInFunction()
+                {
+                    CommandId = commandId,
+                    FunctionId = functionId
+                };
+
+                _context.CommandInFunctions.Add(entity);
             }
 
-            //// CREATE NEW INSTANCE OF COMMAND IN FUNCTION
-            var entity = new CommandInFunction()
+            //// IF WANT ADD COMMAND FOR ALL FUNCTIONS
+            if (request.AddToAllFunctions)
             {
-                CommandId = request.CommandId,
-                FunctionId = request.FunctionId
-            };
+                var otherFunctions = _context.Functions.Where(x => x.Id != functionId);
+                foreach (var function in otherFunctions)
+                {
+                    foreach (var commandId in request.CommandIds)
+                    {
+                        if (await _context.CommandInFunctions.FindAsync(request.CommandIds, function.Id) == null)
+                        {
+                            _context.CommandInFunctions.Add(new CommandInFunction()
+                            {
+                                CommandId = commandId,
+                                FunctionId = function.Id
+                            });
+                        }
+                    }
+                }
+            }
 
-            //// INSERT NEW COMMAND INTO DATABASE AND SAVE CHANGE
-            _context.CommandInFunctions.Add(entity);
+            //// ADD COMMANDS AND SAVE CHANGES
             var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER INSERT IS GREATER THAN 0, ADD SUCCESS AND RETURN STATUS 201, ELSE RETURN STATUS 400
             if (result > 0)
             {
-                return CreatedAtAction(nameof(GetById), new { commandId = request.CommandId, functionId = request.FunctionId }, request);
+                return CreatedAtAction(nameof(GetById), new { request.CommandIds, functionId });
             }
             else
             {
@@ -376,27 +425,20 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpDelete("{functionId}/commands/{commandId}")]
         [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.DELETE)]
-        public async Task<IActionResult> DeleteCommandInFunction(string functionId, string commandId)
+        public async Task<IActionResult> DeleteCommandToFunction(string functionId, [FromQuery] CommandAssignRequest request)
         {
-            //// GET COMMAND BY FUNCTION (FunctionId, CommandId)
-            var commandInFunction = await _context.CommandInFunctions.FindAsync(functionId, commandId);
-
-            //// IF RESULT IS NULL, RETURN STATUS 404
-            if (commandInFunction == null)
-                return BadRequest(new ApiBadRequestResponse($"This command is not existed in function"));
-
-            //// CREATE NEW INSTANCE OF COMMAND IN FUNCTION
-            var entity = new CommandInFunction()
+            //// DELETE EACH COMMAND FROM THIS FUNCTION
+            foreach (var commandId in request.CommandIds)
             {
-                CommandId = commandId,
-                FunctionId = functionId
-            };
+                //// IF NOT EXSIST COMMAND ON FUNCTION, RETURN STATUS 400, ELSE REMOVE THAT COMMAND
+                var entity = await _context.CommandInFunctions.FindAsync(commandId, functionId);
+                if (entity == null)
+                    return BadRequest(new ApiBadRequestResponse("This command is not existed in function"));
 
-            //// DELETE COMMAND FROM DATABASE AND SAVE CHANGE
-            _context.CommandInFunctions.Remove(entity);
+                _context.CommandInFunctions.Remove(entity);
+            }
+
             var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER DELETE GREATER THAN 0 (TRUE), RETURN STATS 200, ELSE RETURN STATUS 400
             if (result > 0)
             {
                 return Ok();
