@@ -36,7 +36,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [ClaimRequirement(FunctionCode.SYSTEM_PERMISSION, CommandCode.VIEW)]
         public async Task<IActionResult> GetCommandViews()
         {
-            using (SqlConnection conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (SqlConnection conn = new SqlConnection(_configuration.GetConnectionString("KnowledgeSpaceConnection")))
             {
                 //// IF CONNECTION IS CLOSED, OPEN CONNECTION
                 if (conn.State == ConnectionState.Closed)
