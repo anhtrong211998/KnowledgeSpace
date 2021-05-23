@@ -19,7 +19,7 @@ namespace KnowledgeSpace.ViewModels.UnitTest.Systems
         {
             request = new UserCreateRequest()
             {
-                Dob = DateTime.Now,
+                Dob = DateTime.Now.ToString(),
                 Email = "tedu.international@gmail.com",
                 FirstName = "Test",
                 LastName = "test",

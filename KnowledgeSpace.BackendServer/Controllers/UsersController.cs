@@ -90,7 +90,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var totalRecords = await query.CountAsync();
 
             //// TAKE RECORDS IN THE PAGE (NEXT PAGE)
-            var items = await query.Skip((pageIndex - 1 * pageSize))
+            var items = await query.Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .Select(u => new UserVm()
                 {
@@ -161,7 +161,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 Id = Guid.NewGuid().ToString(),
                 Email = request.Email,
-                Dob = request.Dob,
+                Dob = DateTime.Parse(request.Dob),
                 UserName = request.UserName,
                 LastName = request.LastName,
                 FirstName = request.FirstName,
@@ -191,7 +191,6 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS CODE.</returns>
         [HttpPut("{id}")]
         [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.UPDATE)]
-        [ApiValidationFilter]
         public async Task<IActionResult> PutUser(string id, [FromBody] UserCreateRequest request)
         {
             //// GET USER WITH ID (KEY)
@@ -206,7 +205,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// GIVE INPUT DATA FOR EACH FIELD OF OBJECT WHICH NEED UPDATE INFOMATIONS
             user.FirstName = request.FirstName;
             user.LastName = request.LastName;
-            user.Dob = request.Dob;
+            user.Dob = DateTime.Parse(request.Dob);
 
             //// UPDATE USER AND SAVE CHANGE INTO DATATABLE IN DATABASE
             var result = await _userManager.UpdateAsync(user);
@@ -269,6 +268,14 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return NotFound(new ApiNotFoundResponse($"Cannot found user with id: {id}"));
             }
 
+            //// NOT DELETE ADMIN USER
+            var adminUsers = await _userManager.GetUsersInRoleAsync(SystemConstants.Roles.Admin);
+            var otherUsers = adminUsers.Where(x => x.Id != id).ToList();
+            if (otherUsers.Count == 0)
+            {
+                return BadRequest(new ApiBadRequestResponse("You cannot remove the only admin user remaining."));
+            }
+
             //// DELETE USER FROM DATATABLE IN DATABASE AND SAVE CHANGE
             var result = await _userManager.DeleteAsync(user);
 
@@ -328,6 +335,76 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 .ThenBy(x => x.SortOrder)
                 .ToListAsync();
             return Ok(data);
+        }
+        #endregion
+
+        #region MANAGEMENT ROLE BY USER
+        /// <summary>
+        /// GET ROLES OF USER BY ID.
+        /// </summary>
+        /// <param name="userId">KEY OF USER</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("{userId}/roles")]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.VIEW)]
+        public async Task<IActionResult> GetUserRoles(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new ApiNotFoundResponse($"Cannot found user with id: {userId}"));
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(roles);
+        }
+
+        /// <summary>
+        /// ASSIGN ROLES FOR USER
+        /// </summary>
+        /// <param name="userId">KEY OF USER</param>
+        /// <param name="request">INPUT DATA</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpPost("{userId}/roles")]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.UPDATE)]
+        public async Task<IActionResult> PostRolesToUserUser(string userId, [FromBody] RoleAssignRequest request)
+        {
+            if (request.RoleNames?.Length == 0)
+            {
+                return BadRequest(new ApiBadRequestResponse("Role names cannot empty"));
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new ApiNotFoundResponse($"Cannot found user with id: {userId}"));
+            var result = await _userManager.AddToRolesAsync(user, request.RoleNames);
+            if (result.Succeeded)
+                return Ok();
+
+            return BadRequest(new ApiBadRequestResponse(result));
+        }
+
+        /// <summary>
+        /// REMOVE ROLE FROM USER
+        /// </summary>
+        /// <param name="userId">KEY OF USER</param>
+        /// <param name="request">INPUT DATA</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpDelete("{userId}/roles")]
+        [ClaimRequirement(FunctionCode.SYSTEM_USER, CommandCode.VIEW)]
+        public async Task<IActionResult> RemoveRolesFromUser(string userId, [FromQuery] RoleAssignRequest request)
+        {
+            if (request.RoleNames?.Length == 0)
+            {
+                return BadRequest(new ApiBadRequestResponse("Role names cannot empty"));
+            }
+            if (request.RoleNames.Length == 1 && request.RoleNames[0] == SystemConstants.Roles.Admin)
+            {
+                return BadRequest(new ApiBadRequestResponse($"Cannot remove {SystemConstants.Roles.Admin} role"));
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new ApiNotFoundResponse($"Cannot found user with id: {userId}"));
+            var result = await _userManager.RemoveFromRolesAsync(user, request.RoleNames);
+            if (result.Succeeded)
+                return Ok();
+
+            return BadRequest(new ApiBadRequestResponse(result));
         }
         #endregion
     }
