@@ -27,6 +27,10 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         [Column(TypeName = "varchar(50)")]
         public string ParentId { get; set; }
 
+        [MaxLength(50)]
+        [Column(TypeName = "varchar(50)")]
+        public string Icon { get; set; }
+
         public virtual IList<CommandInFunction> CommandInFunctions { get; set; }
 
         public virtual IList<Permission> Permissions { get; set; }

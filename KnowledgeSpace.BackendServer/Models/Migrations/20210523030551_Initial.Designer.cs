@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KnowledgeSpace.BackendServer.Models.Migrations
 {
     [DbContext(typeof(KnowledgeSpaceContext))]
-    [Migration("20210522031228_Initial")]
+    [Migration("20210523030551_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -215,6 +215,10 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
             modelBuilder.Entity("KnowledgeSpace.BackendServer.Models.Entities.Function", b =>
                 {
                     b.Property<string>("Id")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Icon")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
