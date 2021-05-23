@@ -119,6 +119,7 @@ namespace KnowledgeSpace.BackendServer
 
             services.AddTransient<IEmailSender, EmailSenderService>();
             services.AddTransient<ISequenceService, SequenceService>();
+            services.AddTransient<IStorageService, FileStorageService>();
 
             //// VALIDATOR USE FLUENT VALIDATOR LIBRARY
             services.Configure<ApiBehaviorOptions>(options =>

@@ -293,7 +293,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             _context.Permissions.RemoveRange(existingPermissions);
 
             //// ADD NEW PERMISSIONS INTO DATABASE TO CHANGE PERMISSION OF THAT ROLE AND SAVE CHANGE
-            _context.Permissions.AddRange(newPermissions);
+            _context.Permissions.AddRange(newPermissions.Distinct(new MyPermissionComparer()));
             var result = await _context.SaveChangesAsync();
 
             //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 201, ELSE RETURN 400
@@ -304,5 +304,39 @@ namespace KnowledgeSpace.BackendServer.Controllers
             return BadRequest(new ApiBadRequestResponse("Save permission failed"));
         }
         #endregion
+    }
+
+    /// <summary>
+    /// CHECK IF PERMISSION EXSIST OR NOT
+    /// </summary>
+    internal class MyPermissionComparer : IEqualityComparer<Permission>
+    {
+        //// ITEMS ARE EQUAL IF THEIR KEYS ARE EQUAL
+        public bool Equals(Permission x, Permission y)
+        {
+            //// CHECK WHETHER THE COMPARE OBJECT REFERENCE THE SAME DATA
+            if (Object.ReferenceEquals(x, y)) return true;
+
+            //// CHECK WHETHER ANY OF THE COMPARED OBJECT IS NULL
+            if (Object.ReferenceEquals(x, null) || Object.ReferenceEquals(y, null))
+                return false;
+
+            //// CHECK WHETHER THE ITEMS PROPERTIES ARE EQUAL
+            return x.CommandId == y.CommandId && x.FunctionId == x.FunctionId && x.RoleId == x.RoleId;
+        }
+
+        //// IF EQUAL() RETURN TRUE FOR A PAIR OF OBJECT
+        //// THEN GetHashCode() MUST RETURN THE SAME VALUE FOR THESE OBJECTS
+
+        public int GetHashCode(Permission permission)
+        {
+            //// CHECK WHETHER TH OBJECT IS NULL
+            if (Object.ReferenceEquals(permission, null)) return 0;
+
+            //// GET HASH CODE FOR THE ID FIELDS
+            int hashProductId = (permission.CommandId + permission.FunctionId + permission.RoleId).GetHashCode();
+
+            return hashProductId;
+        }
     }
 }
