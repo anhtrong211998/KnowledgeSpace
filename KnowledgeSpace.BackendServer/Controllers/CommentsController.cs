@@ -50,7 +50,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     CreateDate = c.CreateDate,
                     KnowledgeBaseId = c.KnowledgeBaseId,
                     LastModifiedDate = c.LastModifiedDate,
-                    OwnwerUserId = c.OwnwerUserId
+                    OwnerUserId = c.OwnerUserId
                 })
                 .ToListAsync();
             //// PAGINATION
@@ -85,7 +85,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 CreateDate = comment.CreateDate,
                 KnowledgeBaseId = comment.KnowledgeBaseId,
                 LastModifiedDate = comment.LastModifiedDate,
-                OwnwerUserId = comment.OwnwerUserId
+                OwnerUserId = comment.OwnerUserId
             };
 
             return Ok(commentVm);
@@ -107,7 +107,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 Content = request.Content,
                 KnowledgeBaseId = request.KnowledgeBaseId,
-                OwnwerUserId = string.Empty/*TODO: GET USER FROM CLAIM*/,
+                OwnerUserId = string.Empty/*TODO: GET USER FROM CLAIM*/,
             };
 
             //// INSERT NEW COMMENT
@@ -150,7 +150,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             if (comment == null)
                 return BadRequest(new ApiBadRequestResponse($"Cannot found comment with id: {commentId}"));
             //// IF OWNWER USER DIFFERENT CURRENT USER, RETURN STATUS 403
-            if (comment.OwnwerUserId != User.Identity.Name)
+            if (comment.OwnerUserId != User.Identity.Name)
                 return Forbid();
 
             //// UPDATE INFORMATION AND SAVE CHANGE
@@ -204,7 +204,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     CreateDate = comment.CreateDate,
                     KnowledgeBaseId = comment.KnowledgeBaseId,
                     LastModifiedDate = comment.LastModifiedDate,
-                    OwnwerUserId = comment.OwnwerUserId
+                    OwnerUserId = comment.OwnerUserId
                 };
                 return Ok(commentVm);
             }

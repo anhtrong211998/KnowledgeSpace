@@ -12,7 +12,7 @@ namespace KnowledgeSpace.ViewModels.Contents
 
         public int KnowledgeBaseId { get; set; }
 
-        public string OwnwerUserId { get; set; }
+        public string OwnerUserId { get; set; }
 
         public DateTime CreateDate { get; set; }
 

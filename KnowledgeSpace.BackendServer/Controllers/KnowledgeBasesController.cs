@@ -364,30 +364,33 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// SPLIT STRING LABEL OF KNOWLEDGE BASE TO A ARRAY
             foreach (var labelText in request.Labels)
             {
-                //// CONVERT SEALED CHARACTERS TO UNSIGN STRING, AND IT IS ID OF LABEL
-                var labelId = TextHelper.ToUnsignString(labelText.ToString());
-
-                //// GET LABEL WITH ID, IF KEY NOT EXIST, CREATE NEW LABEL 
-                var existingLabel = await _context.Labels.FindAsync(labelId);
-                if (existingLabel == null)
+                if (!string.IsNullOrEmpty(labelText))
                 {
-                    var labelEntity = new Label()
-                    {
-                        Id = labelId,
-                        Name = labelText.ToString()
-                    };
-                    _context.Labels.Add(labelEntity);
-                }
+                    //// CONVERT SEALED CHARACTERS TO UNSIGN STRING, AND IT IS ID OF LABEL
+                    var labelId = TextHelper.ToUnsignString(labelText.ToString());
 
-                //// ADD NEW LABEL FOR KNOWLEDGE BASE
-                if (await _context.LabelInKnowledgeBases.FindAsync(labelId, knowledgeBase.Id) == null)
-                {
-                    _context.LabelInKnowledgeBases.Add(new LabelInKnowledgeBase()
+                    //// GET LABEL WITH ID, IF KEY NOT EXIST, CREATE NEW LABEL 
+                    var existingLabel = await _context.Labels.FindAsync(labelId);
+                    if (existingLabel == null)
                     {
-                        KnowledgeBaseId = knowledgeBase.Id,
-                        LabelId = labelId
-                    });
-                }
+                        var labelEntity = new Label()
+                        {
+                            Id = labelId,
+                            Name = labelText.ToString()
+                        };
+                        _context.Labels.Add(labelEntity);
+                    }
+
+                    //// ADD NEW LABEL FOR KNOWLEDGE BASE
+                    if (await _context.LabelInKnowledgeBases.FindAsync(labelId, knowledgeBase.Id) == null)
+                    {
+                        _context.LabelInKnowledgeBases.Add(new LabelInKnowledgeBase()
+                        {
+                            KnowledgeBaseId = knowledgeBase.Id,
+                            LabelId = labelId
+                        });
+                    }
+                }         
             }
         }
 
