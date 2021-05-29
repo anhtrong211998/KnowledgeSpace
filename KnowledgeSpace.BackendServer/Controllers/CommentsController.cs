@@ -1,5 +1,6 @@
 ﻿using KnowledgeSpace.BackendServer.Authorization;
 using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Extensions;
 using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
@@ -27,30 +28,38 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("{knowledgeBaseId}/comments/filter")]
         [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.VIEW)]
-        public async Task<IActionResult> GetCommentsPaging(int knowledgeBaseId, string filter, int pageIndex, int pageSize)
+        public async Task<IActionResult> GetCommentsPaging(int? knowledgeBaseId, string filter, int pageIndex, int pageSize)
         {
             //// GET ALL COMMENTS OF KNOWLEDGE BASE
-            var query = _context.Comments.Where(x => x.KnowledgeBaseId == knowledgeBaseId).AsQueryable();
+            var query = from c in _context.Comments
+                        join u in _context.Users
+                            on c.OwnerUserId equals u.Id
+                        select new { c, u };
+            if (knowledgeBaseId.HasValue)
+            {
+                query = query.Where(x => x.c.KnowledgeBaseId == knowledgeBaseId.Value);
+            }
             //// IF KEYWORD NOT NULL OR EMPTY, GET ALL COMMENTS WHICH CONSTAINS KEYWORD
             if (!string.IsNullOrEmpty(filter))
             {
-                query = query.Where(x => x.Content.Contains(filter));
+                query = query.Where(x => x.c.Content.Contains(filter));
             }
 
             //// TOTAL RECORDS EQUAL NUMBER OF COMMENTS's ROWS
             var totalRecords = await query.CountAsync();
 
             //// TAKE RECORDS IN THE PAGE (NEXT PAGE) AND GIVE INFORMATIONS TO CommentVm (JUST SHOW FIELD NEEDED)
-            var items = await query.Skip((pageIndex - 1 * pageSize))
+            var items = await query.Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .Select(c => new CommentVm()
                 {
-                    Id = c.Id,
-                    Content = c.Content,
-                    CreateDate = c.CreateDate,
-                    KnowledgeBaseId = c.KnowledgeBaseId,
-                    LastModifiedDate = c.LastModifiedDate,
-                    OwnerUserId = c.OwnerUserId
+                    Id = c.c.Id,
+                    Content = c.c.Content,
+                    CreateDate = c.c.CreateDate,
+                    KnowledgeBaseId = c.c.KnowledgeBaseId,
+                    LastModifiedDate = c.c.LastModifiedDate,
+                    OwnerUserId = c.c.OwnerUserId,
+                    OwnerName = c.u.FirstName + " " + c.u.LastName
                 })
                 .ToListAsync();
             //// PAGINATION
@@ -77,6 +86,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
             if (comment == null)
                 return NotFound(new ApiNotFoundResponse($"Cannot found comment with id: {commentId}"));
 
+            //// GET USER OWNER COMMENT
+            var user = await _context.Users.FindAsync(comment.OwnerUserId);
             //// CREATE A CONSTANCE OF COMMENT JUST SHOW NEEDED FIELD
             var commentVm = new CommentVm()
             {
@@ -85,7 +96,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 CreateDate = comment.CreateDate,
                 KnowledgeBaseId = comment.KnowledgeBaseId,
                 LastModifiedDate = comment.LastModifiedDate,
-                OwnerUserId = comment.OwnerUserId
+                OwnerUserId = comment.OwnerUserId,
+                OwnerName = user.FirstName + " " + user.LastName
             };
 
             return Ok(commentVm);
@@ -107,7 +119,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 Content = request.Content,
                 KnowledgeBaseId = request.KnowledgeBaseId,
-                OwnerUserId = string.Empty/*TODO: GET USER FROM CLAIM*/,
+                OwnerUserId = User.GetUserId()
             };
 
             //// INSERT NEW COMMENT
@@ -150,7 +162,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             if (comment == null)
                 return BadRequest(new ApiBadRequestResponse($"Cannot found comment with id: {commentId}"));
             //// IF OWNWER USER DIFFERENT CURRENT USER, RETURN STATUS 403
-            if (comment.OwnerUserId != User.Identity.Name)
+            if (comment.OwnerUserId != User.GetUserId())
                 return Forbid();
 
             //// UPDATE INFORMATION AND SAVE CHANGE
