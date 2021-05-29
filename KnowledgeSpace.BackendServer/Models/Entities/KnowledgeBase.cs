@@ -24,21 +24,16 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         [Column(TypeName = "varchar(500)")]
         public string SeoAlias { get; set; }
 
-        [MaxLength(500)]
         public string Description { get; set; }
 
-        [MaxLength(500)]
         public string Environment { get; set; }
 
-        [MaxLength(500)]
         public string Problem { get; set; }
 
         public string StepToReproduce { get; set; }
 
-        [MaxLength(500)]
         public string ErrorMessage { get; set; }
 
-        [MaxLength(500)]
         public string Workaround { get; set; }
 
         public string Note { get; set; }

@@ -20,7 +20,7 @@ namespace KnowledgeSpace.BackendServer.Services
 
         public async Task<int> GetKnowledgeBaseNewId()
         {
-            using (SqlConnection conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (SqlConnection conn = new SqlConnection(_configuration.GetConnectionString("KnowledgeSpaceConnection")))
             {
                 if (conn.State == ConnectionState.Closed)
                 {

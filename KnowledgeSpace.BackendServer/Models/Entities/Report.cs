@@ -14,7 +14,6 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 
         public int? KnowledgeBaseId { get; set; }
 
-        [MaxLength(500)]
         public string Content { get; set; }
 
         [MaxLength(50)]

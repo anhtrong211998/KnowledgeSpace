@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KnowledgeSpace.BackendServer.Models.Migrations
 {
     [DbContext(typeof(KnowledgeSpaceContext))]
-    [Migration("20210523030551_Initial")]
+    [Migration("20210529163312_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -256,16 +256,13 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Environment")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ErrorMessage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Labels")
                         .HasColumnType("nvarchar(max)");
@@ -291,8 +288,7 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("Problem")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SeoAlias")
                         .IsRequired()
@@ -308,8 +304,7 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Workaround")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -383,8 +378,7 @@ namespace KnowledgeSpace.BackendServer.Models.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Content")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");

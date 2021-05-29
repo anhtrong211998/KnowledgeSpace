@@ -222,7 +222,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 ParentId = category.ParentId,
                 NumberOfTickets = category.NumberOfTickets,
                 SeoDescription = category.SeoDescription,
-                SeoAlias = category.SeoDescription
+                SeoAlias = category.SeoAlias
             };
         }
     }

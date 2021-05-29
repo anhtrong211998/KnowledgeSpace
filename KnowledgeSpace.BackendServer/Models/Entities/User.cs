@@ -42,13 +42,13 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
             }
         }
 
-        [Range(0, int.MaxValue, ErrorMessage = "Number of KnowledgeBases must be non-negative.")]
+        [Range(0, int.MaxValue)]
         public int? NumberOfKnowledgeBases { get; set; } = 0;
 
-        [Range(0, int.MaxValue, ErrorMessage = "Number of Votes must be non-negative.")]
+        [Range(0, int.MaxValue)]
         public int? NumberOfVotes { get; set; } = 0;
 
-        [Range(0, int.MaxValue, ErrorMessage = "Number of Reports must be non-negative.")]
+        [Range(0, int.MaxValue)]
         public int? NumberOfReports { get; set; } = 0;
 
         public virtual IList<ActivityLog> ActivityLogs { get; set; }

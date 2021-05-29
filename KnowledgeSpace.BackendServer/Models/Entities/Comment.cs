@@ -18,6 +18,7 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
         public string Content { get; set; }
 
         [Required]
+        [Range(1, Double.PositiveInfinity)]
         public int KnowledgeBaseId { get; set; }
 
         [MaxLength(50)]
