@@ -1,5 +1,6 @@
 ﻿using KnowledgeSpace.BackendServer.Authorization;
 using KnowledgeSpace.BackendServer.Constants;
+using KnowledgeSpace.BackendServer.Extensions;
 using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
@@ -74,28 +75,31 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.VIEW)]
         public async Task<IActionResult> GetKnowledgeBasesPaging(string filter, int pageIndex, int pageSize)
         {
-            //// GET ALL KNOWLEDGE BASES
-            var query = _context.KnowledgeBases.AsQueryable();
+            //// GET ALL KNOWLEDGE BASES OF CATEGORIES
+            var query = from k in _context.KnowledgeBases
+                        join c in _context.Categories on k.CategoryId equals c.Id
+                        select new { k, c };
 
             //// IF KEYWORD NOT NULL, GET ALL KNOWLEDGE BASES WHICH CONSTAINS KEYWORD
             if (!string.IsNullOrEmpty(filter))
             {
-                query = query.Where(x => x.Title.Contains(filter));
+                query = query.Where(x => x.k.Title.Contains(filter));
             }
 
             //// TOTAL RECORDS EQUAL NUMBER OF KNOWLEDGEBASES's ROWS
             var totalRecords = await query.CountAsync();
 
             //// TAKE RECORDS IN THE PAGE (NEXT PAGE)
-            var items = await query.Skip((pageIndex - 1 * pageSize))
+            var items = await query.Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .Select(u => new KnowledgeBaseQuickVm()
                 {
-                    Id = u.Id,
-                    CategoryId = (int)u.CategoryId,
-                    Description = u.Description,
-                    SeoAlias = u.SeoAlias,
-                    Title = u.Title
+                    Id = u.k.Id,
+                    CategoryId = (int)u.k.CategoryId,
+                    Description = u.k.Description,
+                    SeoAlias = u.k.SeoAlias,
+                    Title = u.k.Title,
+                    CategoryName = u.c.Name
                 })
                 .ToListAsync();
 
@@ -125,7 +129,19 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return NotFound(new ApiNotFoundResponse($"Cannot found knowledge base with id: {id}"));
 
             //// GIVE INFO KnowledgeBaseVm (JUST SHOW NEEDED FIELDS)
+            var attachments = await _context.Attachments
+                .Where(x => x.KnowledgeBaseId == id)
+                .Select(x => new AttachmentVm()
+                {
+                    FileName = x.FileName,
+                    FilePath = x.FilePath,
+                    FileSize = x.FileSize,
+                    Id = x.Id,
+                    FileType = x.FileType
+                }).ToListAsync();
             var knowledgeBaseVm = CreateKnowledgeBaseVm(knowledgeBase);
+            knowledgeBaseVm.Attachments = attachments;
+
             return Ok(knowledgeBaseVm);
         }
 
@@ -137,11 +153,20 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [HttpPost]
         [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.CREATE)]
         [ApiValidationFilter]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> PostKnowledgeBase([FromForm] KnowledgeBaseCreateRequest request)
         {
             //// CREATE NEW INSTANCE OF KNOWLEDGE BASE WITH INFOS ARE INPUT DATA
             KnowledgeBase knowledgeBase = CreateKnowledgeBaseEntity(request);
             knowledgeBase.Id = await _sequenceService.GetKnowledgeBaseNewId();
+
+            //// GET CURRENT ID (IS OWNER USER)
+            knowledgeBase.OwnerUserId = User.GetUserId();
+            //// CONVERT SIGN STRING TO UNSIGN STRING
+            if (string.IsNullOrEmpty(knowledgeBase.SeoAlias))
+            {
+                knowledgeBase.SeoAlias = TextHelper.ToUnsignString(knowledgeBase.Title);
+            }
 
             //// PROCESS ATTACHMENT
             if (request.Attachments != null && request.Attachments.Count > 0)
@@ -156,7 +181,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             _context.KnowledgeBases.Add(knowledgeBase);
 
             //// PROCESS LABEL
-            if (!string.IsNullOrEmpty(request.Labels))
+            if (request.Labels?.Length > 0)
             {
                 await ProcessLabel(request, knowledgeBase);
             }
@@ -168,7 +193,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 201, ELSE RETURN STATUS 400
             if (result > 0)
             {
-                return CreatedAtAction(nameof(GetById), new { id = knowledgeBase.Id }, request);
+                return CreatedAtAction(nameof(GetById), new { id = knowledgeBase.Id });
             }
             else
             {
@@ -185,7 +210,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [HttpPut("{id}")]
         [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.UPDATE)]
         [ApiValidationFilter]
-        public async Task<IActionResult> PutKnowledgeBase(int id, [FromBody] KnowledgeBaseCreateRequest request)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> PutKnowledgeBase(int id, [FromForm] KnowledgeBaseCreateRequest request)
         {
             //// GET KNOWLEDGE BASE WITH ID (KEY)
             var knowledgeBase = await _context.KnowledgeBases.FindAsync(id);
@@ -197,8 +223,17 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// GIVE INPUT DATA FOR EACH FIELD OF OBJECT WHICH NEED UPDATE INFOMATIONS
             UpdateKnowledgeBase(request, knowledgeBase);
 
+            //// PROCESS ATTACHMENT
+            if (request.Attachments != null && request.Attachments.Count > 0)
+            {
+                foreach (var attachment in request.Attachments)
+                {
+                    var attachmentEntity = await SaveFile(knowledgeBase.Id, attachment);
+                    _context.Attachments.Add(attachmentEntity);
+                }
+            }
             //// PROCESS LABEL
-            if (!string.IsNullOrEmpty(request.Labels))
+            if (request.Labels?.Length > 0)
             {
                 await ProcessLabel(request, knowledgeBase);
             }
@@ -222,7 +257,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpDelete("{id}")]
         [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.DELETE)]
-        public async Task<IActionResult> DeleteKnowledgeBase(string id)
+        public async Task<IActionResult> DeleteKnowledgeBase(int id)
         {
             //// GET KNOWLEDGE BASE WITH ID (KEY)
             var knowledgeBase = await _context.KnowledgeBases.FindAsync(id);
@@ -257,7 +292,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// GET RAW NAME OF FILE
             var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
             //// GENERATION NAME OF FILE
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
+            var fileName = $"{originalFileName.Substring(0, originalFileName.LastIndexOf('.'))}{Path.GetExtension(originalFileName)}";
             //// SAVE FILE
             await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
             var attachmentEntity = new Attachment()
@@ -304,7 +339,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
                 OwnerUserId = knowledgeBase.OwnerUserId,
 
-                Labels = knowledgeBase.Labels,
+                Labels = !string.IsNullOrEmpty(knowledgeBase.Labels) ? knowledgeBase.Labels.Split(',') : null,
 
                 CreateDate = knowledgeBase.CreateDate,
 
@@ -327,11 +362,10 @@ namespace KnowledgeSpace.BackendServer.Controllers
         private async Task ProcessLabel(KnowledgeBaseCreateRequest request, KnowledgeBase knowledgeBase)
         {
             //// SPLIT STRING LABEL OF KNOWLEDGE BASE TO A ARRAY
-            string[] labels = request.Labels.Split(',');
-            foreach (var labelText in labels)
+            foreach (var labelText in request.Labels)
             {
                 //// CONVERT SEALED CHARACTERS TO UNSIGN STRING, AND IT IS ID OF LABEL
-                var labelId = TextHelper.ToUnsignString(labelText);
+                var labelId = TextHelper.ToUnsignString(labelText.ToString());
 
                 //// GET LABEL WITH ID, IF KEY NOT EXIST, CREATE NEW LABEL 
                 var existingLabel = await _context.Labels.FindAsync(labelId);
@@ -340,18 +374,20 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     var labelEntity = new Label()
                     {
                         Id = labelId,
-                        Name = labelText
+                        Name = labelText.ToString()
                     };
                     _context.Labels.Add(labelEntity);
                 }
 
-                //// ADD LABEL FOR KNOWLEDGE BASE
-                var labelInKnowledgeBase = new LabelInKnowledgeBase()
+                //// ADD NEW LABEL FOR KNOWLEDGE BASE
+                if (await _context.LabelInKnowledgeBases.FindAsync(labelId, knowledgeBase.Id) == null)
                 {
-                    KnowledgeBaseId = knowledgeBase.Id,
-                    LabelId = labelId
-                };
-                _context.LabelInKnowledgeBases.Add(labelInKnowledgeBase);
+                    _context.LabelInKnowledgeBases.Add(new LabelInKnowledgeBase()
+                    {
+                        KnowledgeBaseId = knowledgeBase.Id,
+                        LabelId = labelId
+                    });
+                }
             }
         }
 
@@ -362,7 +398,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>KnowledgeBase</returns>
         private static KnowledgeBase CreateKnowledgeBaseEntity(KnowledgeBaseCreateRequest request)
         {
-            return new KnowledgeBase()
+            var entity = new KnowledgeBase()
             {
                 CategoryId = request.CategoryId,
 
@@ -382,10 +418,13 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
                 Workaround = request.Workaround,
 
-                Note = request.Note,
-
-                Labels = request.Labels,
+                Note = request.Note
             };
+            if (request.Labels?.Length > 0)
+            {
+                entity.Labels = string.Join(',', request.Labels);
+            }
+            return entity;
         }
 
         /// <summary>
@@ -415,7 +454,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             knowledgeBase.Note = request.Note;
 
-            knowledgeBase.Labels = request.Labels;
+            knowledgeBase.Labels = string.Join(',', request.Labels);
         }
         #endregion
     }

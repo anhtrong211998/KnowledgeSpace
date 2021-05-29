@@ -68,7 +68,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// TOTAL RECORDS EQUAL NUMBER OF CATEGORIES's ROW
             var totalRecords = await query.CountAsync();
             //// TAKE RECORDS IN THE PAGE (NEXT PAGE)
-            var items = await query.Skip((pageIndex - 1 * pageSize))
+            var items = await query.Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize).ToListAsync();
 
             //// GIVE INFORMATIONS TO CategoryVm (JUST SHOW FIELD NEEDED)
@@ -90,7 +90,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("{id}")]
         [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.VIEW)]
-        public async Task<IActionResult> GetById(string id)
+        public async Task<IActionResult> GetById(int id)
         {
             //// GET CATEGORY WITH ID (KEY)
             var category = await _context.Categories.FindAsync(id);
@@ -187,7 +187,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <returns>HTTP STATUS.</returns>
         [HttpDelete("{id}")]
         [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.DELETE)]
-        public async Task<IActionResult> DeleteCategory(string id)
+        public async Task<IActionResult> DeleteCategory(int id)
         {
             //// GET CATEGORY WITH ID (KEY)
             var category = await _context.Categories.FindAsync(id);
