@@ -48,7 +48,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 Url = u.Url,
                 SortOrder = u.SortOrder,
                 ParentId = u.ParentId
-            }).ToListAsync();
+            }).OrderBy(x => x.SortOrder).ToListAsync();
 
             return Ok(functionvms);
         }
@@ -89,7 +89,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     Url = u.Url,
                     SortOrder = u.SortOrder,
                     ParentId = u.ParentId
-                })
+                }).OrderBy(x => x.SortOrder)
                 .ToListAsync();
 
             //// PAGINATION.
@@ -423,7 +423,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="functionId">KEY OF FUNCTION.</param>
         /// <param name="commandId">KEY OF COMMAND.</param>
         /// <returns>HTTP STATUS.</returns>
-        [HttpDelete("{functionId}/commands/{commandId}")]
+        [HttpDelete("{functionId}/commands")]
         [ClaimRequirement(FunctionCode.SYSTEM_FUNCTION, CommandCode.DELETE)]
         public async Task<IActionResult> DeleteCommandToFunction(string functionId, [FromQuery] CommandAssignRequest request)
         {
