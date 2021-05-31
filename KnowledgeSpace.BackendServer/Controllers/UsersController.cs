@@ -57,7 +57,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
                 FirstName = u.FirstName,
-                LastName = u.LastName
+                LastName = u.LastName,
+                CreateDate = u.CreateDate
             }).ToListAsync();
 
             return Ok(uservms);
@@ -100,7 +101,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     FirstName = u.FirstName,
-                    LastName = u.LastName
+                    LastName = u.LastName,
+                    CreateDate = u.CreateDate
                 })
                 .ToListAsync();
 
@@ -139,7 +141,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 FirstName = user.FirstName,
-                LastName = user.LastName
+                LastName = user.LastName,
+                CreateDate = user.CreateDate
             };
 
             return Ok(userVm);
@@ -165,7 +168,9 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 UserName = request.UserName,
                 LastName = request.LastName,
                 FirstName = request.FirstName,
-                PhoneNumber = request.PhoneNumber
+                PhoneNumber = request.PhoneNumber,
+                CreateDate = DateTime.Now,
+                LastModifiedDate = DateTime.Now
             };
 
             //// INSERT NEW USER INTO DATATABLE OF DATABASE AND SAVE CHANGE
@@ -206,7 +211,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             user.FirstName = request.FirstName;
             user.LastName = request.LastName;
             user.Dob = DateTime.Parse(request.Dob);
-
+            user.LastModifiedDate = DateTime.Now;
             //// UPDATE USER AND SAVE CHANGE INTO DATATABLE IN DATABASE
             var result = await _userManager.UpdateAsync(user);
 
@@ -290,7 +295,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     FirstName = user.FirstName,
-                    LastName = user.LastName
+                    LastName = user.LastName,
+                    CreateDate = user.CreateDate
                 };
                 return Ok(uservm);
             }

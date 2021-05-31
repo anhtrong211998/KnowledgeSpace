@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using KnowledgeSpace.BackendServer.Models.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace KnowledgeSpace.BackendServer.Models.Entities
 {
-    public class User : IdentityUser
+    public class User : IdentityUser, IDateTracking
     {
         public User()
         {
@@ -50,7 +51,8 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 
         [Range(0, int.MaxValue)]
         public int? NumberOfReports { get; set; } = 0;
-
+        public DateTime CreateDate { get; set; }
+        public DateTime? LastModifiedDate { get; set; }
         public virtual IList<ActivityLog> ActivityLogs { get; set; }
     }
 }
