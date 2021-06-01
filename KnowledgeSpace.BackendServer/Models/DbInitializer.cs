@@ -85,9 +85,9 @@ namespace KnowledgeSpace.BackendServer.Models
 
                     new Function {Id = "STATISTIC",Name = "Thống kê", ParentId = null, SortOrder = 3, Url = "/statistics",Icon="fa-bar-chart-o" },
 
-                    new Function {Id = "STATISTIC_MONTHLY_NEWMEMBER",Name = "Đăng ký từng tháng",ParentId = "STATISTIC",SortOrder = 1,Url = "/statistics/monthly-new-members",Icon = "fa-wrench"},
-                    new Function {Id = "STATISTIC_MONTHLY_NEWKB",Name = "Bài đăng hàng tháng",ParentId = "STATISTIC",SortOrder = 2,Url = "/statistics/monthly-new-kbs",Icon = "fa-wrench"},
-                    new Function {Id = "STATISTIC_MONTHLY_COMMENT",Name = "Comment theo tháng",ParentId = "STATISTIC",SortOrder = 3,Url = "/statistics/monthly-new-comments",Icon = "fa-wrench" },
+                    new Function {Id = "STATISTIC_MONTHLY_NEWMEMBER",Name = "Đăng ký từng tháng",ParentId = "STATISTIC",SortOrder = 1,Url = "/statistics/monthly-registers",Icon = "fa-wrench"},
+                    new Function {Id = "STATISTIC_MONTHLY_NEWKB",Name = "Bài đăng hàng tháng",ParentId = "STATISTIC",SortOrder = 2,Url = "/statistics/monthly-newkbs",Icon = "fa-wrench"},
+                    new Function {Id = "STATISTIC_MONTHLY_COMMENT",Name = "Comment theo tháng",ParentId = "STATISTIC",SortOrder = 3,Url = "/statistics/monthly-comments",Icon = "fa-wrench" },
 
                     new Function {Id = "SYSTEM", Name = "Hệ thống", ParentId = null, SortOrder = 1, Url = "/systems",Icon="fa-th-list" },
 
