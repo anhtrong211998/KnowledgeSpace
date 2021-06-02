@@ -4,14 +4,16 @@ using KnowledgeSpace.BackendServer.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace KnowledgeSpace.BackendServer.Models.Migrations
 {
     [DbContext(typeof(KnowledgeSpaceContext))]
-    partial class KnowledgeSpaceContextModelSnapshot : ModelSnapshot
+    [Migration("20210602001135_Add_ViewCount_For_KnowledgeBases_Table")]
+    partial class Add_ViewCount_For_KnowledgeBases_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

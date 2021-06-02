@@ -7,6 +7,7 @@ using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.BackendServer.Services;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Contents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -128,21 +129,87 @@ namespace KnowledgeSpace.BackendServer.Controllers
             if (knowledgeBase == null)
                 return NotFound(new ApiNotFoundResponse($"Cannot found knowledge base with id: {id}"));
 
-            //// GIVE INFO KnowledgeBaseVm (JUST SHOW NEEDED FIELDS)
-            var attachments = await _context.Attachments
-                .Where(x => x.KnowledgeBaseId == id)
-                .Select(x => new AttachmentVm()
-                {
-                    FileName = x.FileName,
-                    FilePath = x.FilePath,
-                    FileSize = x.FileSize,
-                    Id = x.Id,
-                    FileType = x.FileType
-                }).ToListAsync();
-            var knowledgeBaseVm = CreateKnowledgeBaseVm(knowledgeBase);
-            knowledgeBaseVm.Attachments = attachments;
+            //// VIEW COUNT INCREASE 1
+            knowledgeBase.ViewCount += 1;
+            _context.KnowledgeBases.Update(knowledgeBase);
+            var result = await _context.SaveChangesAsync();
 
-            return Ok(knowledgeBaseVm);
+            //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
+            if (result > 0)
+            {
+                //// GIVE INFO KnowledgeBaseVm (JUST SHOW NEEDED FIELDS)
+                var attachments = await _context.Attachments
+                    .Where(x => x.KnowledgeBaseId == id)
+                    .Select(x => new AttachmentVm()
+                    {
+                        FileName = x.FileName,
+                        FilePath = x.FilePath,
+                        FileSize = x.FileSize,
+                        Id = x.Id,
+                        FileType = x.FileType
+                    }).ToListAsync();
+                var knowledgeBaseVm = CreateKnowledgeBaseVm(knowledgeBase);
+                knowledgeBaseVm.Attachments = attachments;
+
+                return Ok(knowledgeBaseVm);
+            }
+            return BadRequest(new ApiBadRequestResponse($"Increase ViewCount failed"));
+            
+        }
+
+        /// <summary>
+        /// GET LASTEST KNOWLEDGE BASE.
+        /// </summary>
+        /// <param name="take">NUMBER OF RECORDS NEED SHOW</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("latest/{take:int}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetLatestKnowledgeBases(int take)
+        {
+            //// GET NUMBER OF RECORDS NEED SHOW ORDER BY CREATEDATE DESC
+            var knowledgeBases = _context.KnowledgeBases
+                .OrderByDescending(x => x.CreateDate)
+                .Take(take);
+
+            //// GET INFOMATION OF FIELDS NEEDED SHOW
+            var knowledgeBasevms = await knowledgeBases.Select(u => new KnowledgeBaseQuickVm()
+            {
+                Id = u.Id,
+                CategoryId = (int)u.CategoryId,
+                Description = u.Description,
+                SeoAlias = u.SeoAlias,
+                Title = u.Title
+            }).ToListAsync();
+
+            return Ok(knowledgeBasevms);
+        }
+
+        /// <summary>
+        /// GET POPULAR KNOWLEDGE BASE.
+        /// </summary>
+        /// <param name="take">NUMBER OF RECORDS NEED SHOW.</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("popular/{take:int}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPopularKnowledgeBases(int take)
+        {
+            //// GET NUMBER OF RECORDS NEED SHOW ORDER BY VIEWCOUNT DESC
+            var knowledgeBases = _context.KnowledgeBases
+                .OrderByDescending(x => x.ViewCount)
+                .Take(take);
+
+            //// GET INFOMATION OF FIELDS NEEDED SHOW
+            var knowledgeBasevms = await knowledgeBases.Select(u => new KnowledgeBaseQuickVm()
+            {
+                Id = u.Id,
+                CategoryId = (int)u.CategoryId,
+                Description = u.Description,
+                SeoAlias = u.SeoAlias,
+                Title = u.Title,
+                ViewCount = u.ViewCount
+            }).ToListAsync();
+
+            return Ok(knowledgeBasevms);
         }
 
         /// <summary>
