@@ -1,8 +1,11 @@
+using KnowledgeSpace.WebPortal.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -25,7 +28,9 @@ namespace KnowledgeSpace.WebPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            IdentityModelEventSource.ShowPII = true; //Add this line
+            services.AddHttpClient();
+
+            //IdentityModelEventSource.ShowPII = true; //Add this line
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = "Cookies";
@@ -62,6 +67,12 @@ namespace KnowledgeSpace.WebPortal
             {
                 builder.AddRazorRuntimeCompilation();
             }
+
+            //Declare DI containers
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddTransient<ICategoryApiClient, CategoryApiClient>();
+            services.AddTransient<IKnowledgeBaseApiClient, KnowledgeBaseApiClient>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
