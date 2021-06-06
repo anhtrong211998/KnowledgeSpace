@@ -5,6 +5,7 @@ using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Contents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +35,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// </summary>
         /// <returns>HTTP STATUS WITH LIST OF CATEGORIES.</returns>
         [HttpGet]
-        [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.VIEW)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCategories()
         {
             //// GET ALL CATEGORIES FROM DATABASE
@@ -89,7 +90,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF CATEGORY.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("{id}")]
-        [ClaimRequirement(FunctionCode.CONTENT_CATEGORY, CommandCode.VIEW)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             //// GET CATEGORY WITH ID (KEY)

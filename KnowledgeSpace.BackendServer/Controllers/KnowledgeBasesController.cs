@@ -73,8 +73,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="pageSize">NUMBER OF RECORDS EACH PAGE.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("filter")]
-        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.VIEW)]
-        public async Task<IActionResult> GetKnowledgeBasesPaging(string filter, int pageIndex, int pageSize)
+        [AllowAnonymous]
+        public async Task<IActionResult> GetKnowledgeBasesPaging(string filter, int? categoryId, int pageIndex, int pageSize)
         {
             //// GET ALL KNOWLEDGE BASES OF CATEGORIES
             var query = from k in _context.KnowledgeBases
@@ -85,6 +85,11 @@ namespace KnowledgeSpace.BackendServer.Controllers
             if (!string.IsNullOrEmpty(filter))
             {
                 query = query.Where(x => x.k.Title.Contains(filter));
+            }
+            //// IF KEYWORD NOT NULL, GET ALL KNOWLEDGE BASES WHICH CONSTAINS CategoryId
+            if (categoryId.HasValue)
+            {
+                query = query.Where(x => x.k.CategoryId == categoryId.Value);
             }
 
             //// TOTAL RECORDS EQUAL NUMBER OF KNOWLEDGEBASES's ROWS
@@ -100,13 +105,19 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     Description = u.k.Description,
                     SeoAlias = u.k.SeoAlias,
                     Title = u.k.Title,
-                    CategoryName = u.c.Name
+                    CategoryAlias = u.c.SeoAlias,
+                    CategoryName = u.c.Name,
+                    NumberOfVotes = u.k.NumberOfVotes,
+                    CreateDate = u.k.CreateDate,
+                    NumberOfComments = u.k.NumberOfComments
                 })
                 .ToListAsync();
 
             //// PAGINATION
             var pagination = new Pagination<KnowledgeBaseQuickVm>
             {
+                PageSize = pageSize,
+                PageIndex = pageIndex,
                 Items = items,
                 TotalRecords = totalRecords,
             };
@@ -154,7 +165,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return Ok(knowledgeBaseVm);
             }
             return BadRequest(new ApiBadRequestResponse($"Increase ViewCount failed"));
-            
+
         }
 
         /// <summary>
@@ -444,33 +455,33 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// SPLIT STRING LABEL OF KNOWLEDGE BASE TO A ARRAY
             foreach (var labelText in request.Labels)
             {
-                if (!string.IsNullOrEmpty(labelText))
+                //// IF LABEL NULL IGNORE THIS LOOP 
+                if (labelText == null) continue;
+
+                //// CONVERT SEALED CHARACTERS TO UNSIGN STRING, AND IT IS ID OF LABEL
+                var labelId = TextHelper.ToUnsignString(labelText.ToString());
+
+                //// GET LABEL WITH ID, IF KEY NOT EXIST, CREATE NEW LABEL 
+                var existingLabel = await _context.Labels.FindAsync(labelId);
+                if (existingLabel == null)
                 {
-                    //// CONVERT SEALED CHARACTERS TO UNSIGN STRING, AND IT IS ID OF LABEL
-                    var labelId = TextHelper.ToUnsignString(labelText.ToString());
-
-                    //// GET LABEL WITH ID, IF KEY NOT EXIST, CREATE NEW LABEL 
-                    var existingLabel = await _context.Labels.FindAsync(labelId);
-                    if (existingLabel == null)
+                    var labelEntity = new Label()
                     {
-                        var labelEntity = new Label()
-                        {
-                            Id = labelId,
-                            Name = labelText.ToString()
-                        };
-                        _context.Labels.Add(labelEntity);
-                    }
+                        Id = labelId,
+                        Name = labelText.ToString()
+                    };
+                    _context.Labels.Add(labelEntity);
+                }
 
-                    //// ADD NEW LABEL FOR KNOWLEDGE BASE
-                    if (await _context.LabelInKnowledgeBases.FindAsync(labelId, knowledgeBase.Id) == null)
+                //// ADD NEW LABEL FOR KNOWLEDGE BASE
+                if (await _context.LabelInKnowledgeBases.FindAsync(labelId, knowledgeBase.Id) == null)
+                {
+                    _context.LabelInKnowledgeBases.Add(new LabelInKnowledgeBase()
                     {
-                        _context.LabelInKnowledgeBases.Add(new LabelInKnowledgeBase()
-                        {
-                            KnowledgeBaseId = knowledgeBase.Id,
-                            LabelId = labelId
-                        });
-                    }
-                }         
+                        KnowledgeBaseId = knowledgeBase.Id,
+                        LabelId = labelId
+                    });
+                }
             }
         }
 
