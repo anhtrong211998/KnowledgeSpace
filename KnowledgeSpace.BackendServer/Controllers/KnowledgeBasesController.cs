@@ -167,19 +167,26 @@ namespace KnowledgeSpace.BackendServer.Controllers
         public async Task<IActionResult> GetLatestKnowledgeBases(int take)
         {
             //// GET NUMBER OF RECORDS NEED SHOW ORDER BY CREATEDATE DESC
-            var knowledgeBases = _context.KnowledgeBases
-                .OrderByDescending(x => x.CreateDate)
-                .Take(take);
+            var knowledgeBases = from k in _context.KnowledgeBases
+                                 join c in _context.Categories on k.CategoryId equals c.Id
+                                 orderby k.CreateDate descending
+                                 select new { k, c };
 
             //// GET INFOMATION OF FIELDS NEEDED SHOW
-            var knowledgeBasevms = await knowledgeBases.Select(u => new KnowledgeBaseQuickVm()
-            {
-                Id = u.Id,
-                CategoryId = (int)u.CategoryId,
-                Description = u.Description,
-                SeoAlias = u.SeoAlias,
-                Title = u.Title
-            }).ToListAsync();
+            var knowledgeBasevms = await knowledgeBases.Take(take)
+                .Select(u => new KnowledgeBaseQuickVm()
+                {
+                    Id = u.k.Id,
+                    CategoryId = (int)u.k.CategoryId,
+                    Description = u.k.Description,
+                    SeoAlias = u.k.SeoAlias,
+                    Title = u.k.Title,
+                    CategoryAlias = u.c.SeoAlias,
+                    CategoryName = u.c.Name,
+                    ViewCount = u.k.ViewCount,
+                    NumberOfVotes = u.k.NumberOfVotes,
+                    CreateDate = u.k.CreateDate
+                }).ToListAsync();
 
             return Ok(knowledgeBasevms);
         }
@@ -194,20 +201,26 @@ namespace KnowledgeSpace.BackendServer.Controllers
         public async Task<IActionResult> GetPopularKnowledgeBases(int take)
         {
             //// GET NUMBER OF RECORDS NEED SHOW ORDER BY VIEWCOUNT DESC
-            var knowledgeBases = _context.KnowledgeBases
-                .OrderByDescending(x => x.ViewCount)
-                .Take(take);
+            var knowledgeBases = from k in _context.KnowledgeBases
+                                 join c in _context.Categories on k.CategoryId equals c.Id
+                                 orderby k.ViewCount descending
+                                 select new { k, c };
 
             //// GET INFOMATION OF FIELDS NEEDED SHOW
-            var knowledgeBasevms = await knowledgeBases.Select(u => new KnowledgeBaseQuickVm()
-            {
-                Id = u.Id,
-                CategoryId = (int)u.CategoryId,
-                Description = u.Description,
-                SeoAlias = u.SeoAlias,
-                Title = u.Title,
-                ViewCount = u.ViewCount
-            }).ToListAsync();
+            var knowledgeBasevms = await knowledgeBases.Take(take)
+                .Select(u => new KnowledgeBaseQuickVm()
+                {
+                    Id = u.k.Id,
+                    CategoryId = (int)u.k.CategoryId,
+                    Description = u.k.Description,
+                    SeoAlias = u.k.SeoAlias,
+                    Title = u.k.Title,
+                    CategoryAlias = u.c.SeoAlias,
+                    CategoryName = u.c.Name,
+                    ViewCount = u.k.ViewCount,
+                    NumberOfVotes = u.k.NumberOfVotes,
+                    CreateDate = u.k.CreateDate
+                }).ToListAsync();
 
             return Ok(knowledgeBasevms);
         }
