@@ -1,7 +1,7 @@
 ﻿@model HomeViewModel
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ";
 }
 
 <div class="container">
@@ -17,12 +17,12 @@
                     <ul class="articles">
                         @foreach (var item in Model.PopularKnowledgeBases)
                         {
-                            var url = "/knowledgebases/" + item.SeoAlias + "-" + item.Id + "/";
+                            var url = "/knowledgebase/" + item.SeoAlias + "-" + item.Id + "/";
                             <li class="article-entry standard">
                                 <h4><a href="@url">@Html.Raw(item.Title)</a></h4>
                                 <span class="article-meta">
                                     @item.CreateDate.ToString("dd/MM/yyyy") trong
-                                    <a href="/categories/@item.CategoryAlias-@item.CategoryId" title="Xem tất cả bài đăng trong @item.CategoryName">@item.CategoryName</a>
+                                    <a href="/category/@item.CategoryAlias-@item.CategoryId" title="Xem tất cả bài đăng trong @item.CategoryName">@item.CategoryName</a>
                                 </span>
                                 <span class="like-count">@item.NumberOfVotes</span>
                             </li>
@@ -36,12 +36,12 @@
                     <ul class="articles">
                         @foreach (var item in Model.LatestKnowledgeBases)
                         {
-                            var url = "/knowledgebases/" + item.SeoAlias + "-" + item.Id + "/";
+                            var url = "/knowledgebase/" + item.SeoAlias + "-" + item.Id + "/";
                             <li class="article-entry standard">
                                 <h4><a href="@url">@Html.Raw(item.Title)</a></h4>
                                 <span class="article-meta">
                                     @item.CreateDate.ToString("dd/MM/yyyy") trong
-                                    <a href="/categories/@item.CategoryAlias-@item.CategoryId" title="Xem tất cả bài đăng trong @Html.Raw(item.CategoryName)">@item.CategoryName</a>
+                                    <a href="/category/@item.CategoryAlias-@item.CategoryId" title="Xem tất cả bài đăng trong @Html.Raw(item.CategoryName)">@item.CategoryName</a>
                                 </span>
                                 <span class="like-count">@item.NumberOfVotes</span>
                             </li>
@@ -78,7 +78,7 @@
                 <div class="tagcloud">
                     @foreach (var item in Model.PopularLabels)
                     {
-                        <a href="/tags/@item.Id" class="btn btn-mini">@Html.Raw(item.Name)</a>
+                        <a href="/tag/@item.Id" class="btn btn-mini">@Html.Raw(item.Name)</a>
                     }
                 </div>
             </section>
