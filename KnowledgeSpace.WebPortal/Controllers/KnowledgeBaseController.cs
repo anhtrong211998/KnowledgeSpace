@@ -36,5 +36,32 @@ namespace KnowledgeSpace.WebPortal.Controllers
             };
             return View(viewModel);
         }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var knowledgeBase = await _knowledgeBaseApiClient.GetKnowledgeBaseDetail(id);
+            var category = await _categoryApiClient.GetCategoryById(knowledgeBase.CategoryId);
+            var labels = await _knowledgeBaseApiClient.GetLabelsByKnowledgeBaseId(id);
+            var viewModel = new KnowledgeBaseDetailViewModel()
+            {
+                Detail = knowledgeBase,
+                Category = category,
+                Labels = labels
+            };
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> Search(string keyword, int page = 1)
+        {
+            var pageSize = int.Parse(_configuration["PageSize"]);
+            var data = await _knowledgeBaseApiClient.SearchKnowledgeBase(keyword, page, pageSize);
+            var viewModel = new SearchKnowledgeBaseViewModel()
+            {
+                Data = data,
+                Keyword = keyword
+            };
+            return View(viewModel);
+        }
+
     }
 }

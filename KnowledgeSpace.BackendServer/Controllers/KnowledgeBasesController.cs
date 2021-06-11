@@ -130,7 +130,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="id">KEY OF KNOWLEDGE BASE.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpGet("{id}")]
-        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.VIEW)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             //// GET KNOWLEDGE BASE WITH ID (KEY)
@@ -549,6 +549,35 @@ namespace KnowledgeSpace.BackendServer.Controllers
             knowledgeBase.Note = request.Note;
 
             knowledgeBase.Labels = string.Join(',', request.Labels);
+        }
+        #endregion
+
+        #region Management Labels
+        /// <summary>
+        /// GET LABELS OF KNOWLEDGEBASE
+        /// </summary>
+        /// <param name="knowlegeBaseId">KEY OF KNOWLEDGE BASE</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("{knowlegeBaseId}/labels")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetLabelsByKnowledgeBaseId(int knowlegeBaseId)
+        {
+            //// GET ALL LABEL OF KNOWLEDGE BASE
+            var query = from k in _context.KnowledgeBases
+                        join lik in _context.LabelInKnowledgeBases on k.Id equals lik.KnowledgeBaseId
+                        join l in _context.Labels on lik.LabelId equals l.Id
+                        orderby l.Name ascending
+                        where k.Id == knowlegeBaseId
+                        select new { l.Id, l.Name };
+
+            //// JUST SHOW NEEDED FIELD
+            var labels = await query.Select(u => new LabelVm()
+            {
+                Id = u.Id,
+                Name = u.Name
+            }).ToListAsync();
+
+            return Ok(labels);
         }
         #endregion
     }
