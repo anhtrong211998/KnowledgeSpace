@@ -579,6 +579,52 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             return Ok(labels);
         }
+
+        /// <summary>
+        /// GET KNOWLEDGEBASEs OF LABELS
+        /// </summary>
+        /// <param name="labelId">KEY OF LABEL</param>
+        /// <param name="pageIndex">INDEX OF NEXT PAGE</param>
+        /// <param name="pageSize">NUMBER RECORDS PER PAGE</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("tags/{labelId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetKnowledgeBasesByTagId(string labelId, int pageIndex, int pageSize)
+        {
+            var query = from k in _context.KnowledgeBases
+                        join lik in _context.LabelInKnowledgeBases on k.Id equals lik.KnowledgeBaseId
+                        join l in _context.Labels on lik.LabelId equals l.Id
+                        join c in _context.Categories on k.CategoryId equals c.Id
+                        where lik.LabelId == labelId
+                        select new { k, l, c };
+
+            var totalRecords = await query.CountAsync();
+            var items = await query.Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(u => new KnowledgeBaseQuickVm()
+                {
+                    Id = u.k.Id,
+                    CategoryId = (int)u.k.CategoryId,
+                    Description = u.k.Description,
+                    SeoAlias = u.k.SeoAlias,
+                    Title = u.k.Title,
+                    CategoryAlias = u.c.SeoAlias,
+                    CategoryName = u.c.Name,
+                    NumberOfVotes = u.k.NumberOfVotes,
+                    CreateDate = u.k.CreateDate,
+                    NumberOfComments = u.k.NumberOfComments
+                })
+                .ToListAsync();
+
+            var pagination = new Pagination<KnowledgeBaseQuickVm>
+            {
+                PageSize = pageSize,
+                PageIndex = pageIndex,
+                Items = items,
+                TotalRecords = totalRecords,
+            };
+            return Ok(pagination);
+        }
         #endregion
     }
 }

@@ -14,11 +14,13 @@ namespace KnowledgeSpace.WebPortal.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IKnowledgeBaseApiClient _knowledgeBaseApiClient;
-
+        private readonly ILabelApiClient _labelApiClient;
         public HomeController(ILogger<HomeController> logger,
+            ILabelApiClient labelApiClient,
             IKnowledgeBaseApiClient knowledgeBaseApiClient)
         {
             _logger = logger;
+            _labelApiClient = labelApiClient;
             _knowledgeBaseApiClient = knowledgeBaseApiClient;
         }
 
@@ -26,12 +28,12 @@ namespace KnowledgeSpace.WebPortal.Controllers
         {
             var latestKbs = await _knowledgeBaseApiClient.GetLatestKnowledgeBases(6);
             var popularKbs = await _knowledgeBaseApiClient.GetPopularKnowledgeBases(6);
-            var popularLabels = await _knowledgeBaseApiClient.GetPopularLabels(20);
+            var labels = await _labelApiClient.GetPopularLabels(20);
             var viewModel = new HomeViewModel()
             {
                 LatestKnowledgeBases = latestKbs,
                 PopularKnowledgeBases = popularKbs,
-                PopularLabels = popularLabels
+                PopularLabels = labels
             };
 
             return View(viewModel);
