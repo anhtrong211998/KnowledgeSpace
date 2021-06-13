@@ -203,7 +203,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return BadRequest(new ApiBadRequestResponse($"Cannot found knowledge base with id: {knowledgeBaseId}"));
 
             //// UPDATE NUMBER OF COMMENT IS DECREASE 1 AND SAVE CHANGE
-            knowledgeBase.NumberOfComments = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) - 1;
+            knowledgeBase.NumberOfComments = knowledgeBase.NumberOfComments.GetValueOrDefault(0) - 1;
             _context.KnowledgeBases.Update(knowledgeBase);
             var result = await _context.SaveChangesAsync();
 
