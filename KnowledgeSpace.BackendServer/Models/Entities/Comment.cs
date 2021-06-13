@@ -29,6 +29,8 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 
         public DateTime? LastModifiedDate { get; set; }
 
+        public int? ReplyId { get; set; }
+
         [ForeignKey("KnowledgeBaseId")]
         public virtual KnowledgeBase KnowledgeBase { get; set; }
 

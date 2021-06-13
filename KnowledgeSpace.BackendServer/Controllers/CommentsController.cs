@@ -111,7 +111,6 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost("{knowledgeBaseId}/comments")]
-        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.CREATE)]
         [ApiValidationFilter]
         public async Task<IActionResult> PostComment(int knowledgeBaseId, [FromBody] CommentCreateRequest request)
         {
@@ -119,8 +118,9 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var comment = new Comment()
             {
                 Content = request.Content,
-                KnowledgeBaseId = request.KnowledgeBaseId,
-                OwnerUserId = User.GetUserId()
+                KnowledgeBaseId = knowledgeBaseId,
+                OwnerUserId = User.GetUserId(),
+                ReplyId = request.ReplyId
             };
 
             //// INSERT NEW COMMENT
@@ -131,7 +131,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return BadRequest(new ApiBadRequestResponse($"Cannot found knowledge base with id: {knowledgeBaseId}"));
 
             //// UPDATE NUMBER OF COMMENTS INCREASE 1 AND SAVE CHANGE
-            knowledgeBase.NumberOfComments = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) + 1;
+            knowledgeBase.NumberOfComments = knowledgeBase.NumberOfComments.GetValueOrDefault(0) + 1;
             _context.KnowledgeBases.Update(knowledgeBase);
             var result = await _context.SaveChangesAsync();
 
@@ -253,6 +253,46 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }).ToListAsync();
 
             return Ok(comments);
+        }
+
+        /// <summary>
+        /// GET ALL COMMENTS OF KNOWLEDGEBASE
+        /// </summary>
+        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGEBASE</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("{knowledgeBaseId}/comments/tree")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCommentTreeByKnowledgeBaseId(int knowledgeBaseId)
+        {
+            var query = from c in _context.Comments
+                        join u in _context.Users
+                            on c.OwnerUserId equals u.Id
+                        where c.KnowledgeBaseId == knowledgeBaseId
+                        select new { c, u };
+
+            var flatComments = await query.Select(x => new CommentVm()
+            {
+                Id = x.c.Id,
+                Content = x.c.Content,
+                CreateDate = x.c.CreateDate,
+                KnowledgeBaseId = x.c.KnowledgeBaseId,
+                OwnerUserId = x.c.OwnerUserId,
+                OwnerName = x.u.FirstName + " " + x.u.LastName,
+                ReplyId = x.c.ReplyId
+            }).ToListAsync();
+
+            var lookup = flatComments.ToLookup(c => c.ReplyId);
+            var rootCategories = flatComments.Where(x => x.ReplyId == null);
+
+            foreach (var c in rootCategories)//only loop through root categories
+            {
+                // you can skip the check if you want an empty list instead of null
+                // when there is no children
+                if (lookup.Contains(c.Id))
+                    c.Children = lookup[c.Id].ToList();
+            }
+
+            return Ok(rootCategories);
         }
         #endregion
     }

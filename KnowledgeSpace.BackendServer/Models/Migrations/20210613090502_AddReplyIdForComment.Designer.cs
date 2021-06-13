@@ -4,14 +4,16 @@ using KnowledgeSpace.BackendServer.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace KnowledgeSpace.BackendServer.Models.Migrations
 {
     [DbContext(typeof(KnowledgeSpaceContext))]
-    partial class KnowledgeSpaceContextModelSnapshot : ModelSnapshot
+    [Migration("20210613090502_AddReplyIdForComment")]
+    partial class AddReplyIdForComment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
