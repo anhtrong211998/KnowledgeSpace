@@ -61,5 +61,15 @@ namespace KnowledgeSpace.WebPortal.Services
             var apiUrl = $"/api/knowledgeBases/filter?filter={keyword}&pageIndex={pageIndex}&pageSize={pageSize}";
             return await GetAsync<Pagination<KnowledgeBaseQuickVm>>(apiUrl);
         }
+
+        public async Task<List<CommentVm>> GetCommentsTree(int knowledgeBaseId)
+        {
+            return await GetListAsync<CommentVm>($"/api/knowledgeBases/{knowledgeBaseId}/comments/tree");
+        }
+
+        public async Task<bool> PostComment(CommentCreateRequest request)
+        {
+            return await PostAsync($"/api/knowledgeBases/{request.KnowledgeBaseId}/comments", request);
+        }
     }
 }

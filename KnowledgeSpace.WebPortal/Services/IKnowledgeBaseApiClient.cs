@@ -24,5 +24,9 @@ namespace KnowledgeSpace.WebPortal.Services
         Task<Pagination<KnowledgeBaseQuickVm>> GetKnowledgeBasesByTagId(string tagId, int pageIndex, int pageSize);
 
         Task<List<CommentVm>> GetRecentComments(int take);
+
+        Task<List<CommentVm>> GetCommentsTree(int knowledgeBaseId);
+
+        Task<bool> PostComment(CommentCreateRequest request);
     }
 }
