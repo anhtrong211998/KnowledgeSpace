@@ -22,5 +22,7 @@ namespace KnowledgeSpace.WebPortal.Services
         Task<Pagination<KnowledgeBaseQuickVm>> SearchKnowledgeBase(string keyword, int pageIndex, int pageSize);
 
         Task<Pagination<KnowledgeBaseQuickVm>> GetKnowledgeBasesByTagId(string tagId, int pageIndex, int pageSize);
+
+        Task<List<CommentVm>> GetRecentComments(int take);
     }
 }
