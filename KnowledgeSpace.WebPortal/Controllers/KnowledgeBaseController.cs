@@ -1,4 +1,6 @@
 ﻿using KnowledgeSpace.ViewModels.Contents;
+using KnowledgeSpace.ViewModels.Systems;
+using KnowledgeSpace.WebPortal.Extensions;
 using KnowledgeSpace.WebPortal.Models;
 using KnowledgeSpace.WebPortal.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -17,16 +19,18 @@ namespace KnowledgeSpace.WebPortal.Controllers
         private readonly IConfiguration _configuration;
 
         private readonly ILabelApiClient _labelApiClient;
-
+        private readonly IUserApiClient _userApiClient;
         public KnowledgeBaseController(IKnowledgeBaseApiClient knowledgeBaseApiClient,
             ICategoryApiClient categoryApiClient,
             ILabelApiClient labelApiClient,
+            IUserApiClient userApiClient,
             IConfiguration configuration)
         {
             _knowledgeBaseApiClient = knowledgeBaseApiClient;
             _categoryApiClient = categoryApiClient;
             _configuration = configuration;
             _labelApiClient = labelApiClient;
+            _userApiClient = userApiClient;
         }
 
         public async Task<IActionResult> ListByCategoryId(int id, int page = 1)
@@ -47,11 +51,17 @@ namespace KnowledgeSpace.WebPortal.Controllers
             var knowledgeBase = await _knowledgeBaseApiClient.GetKnowledgeBaseDetail(id);
             var category = await _categoryApiClient.GetCategoryById(knowledgeBase.CategoryId);
             var labels = await _knowledgeBaseApiClient.GetLabelsByKnowledgeBaseId(id);
+            UserVm user = new UserVm();
+            if (User.Identity.IsAuthenticated)
+            {
+                user = await _userApiClient.GetById(User.GetUserId());
+            }
             var viewModel = new KnowledgeBaseDetailViewModel()
             {
                 Detail = knowledgeBase,
                 Category = category,
-                Labels = labels
+                Labels = labels,
+                CurrentUser = user
             };
             return View(viewModel);
         }
