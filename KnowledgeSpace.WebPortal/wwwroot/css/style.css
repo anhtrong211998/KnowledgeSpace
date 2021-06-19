@@ -14,13 +14,68 @@
     padding: 10px;
 }
 
-    .body-section a.new-kb {
-        width: 90%;
-        height: 32px;
-        font-size: 20px;
-        padding: 14px 10px 10px 10px;
-    }
+.body-section a.new-kb {
+    width: 90%;
+    height: 32px;
+    font-size: 20px;
+    padding: 14px 10px 10px 10px;
+}
+
+.header-wrapper {
+    position: fixed;
+    overflow: hidden;
+}
+
+.search-area-wrapper .search-area {
+    padding: 90px 0;
+}
 
 .field-validation-error {
     color: red;
+}
+
+.input-group {
+    display: table;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+    .input-group > div {
+        display: table-cell;
+        vertical-align: middle; /* needed for Safari */
+    }
+
+.input-group-icon {
+    color: #777;
+    padding: 0 12px
+}
+
+.input-group-area {
+    width: 100%;
+}
+
+
+.txtAttachment:focus {
+    outline: none !important;
+    z-index: 0 !important;
+}
+
+.txtAttachment {
+    width: 98%;
+    position: relative;
+    outline: none !important;
+}
+
+.btnAttachment {
+    text-align: center;
+    position: absolute;
+    right: 224px;
+    margin-top: -22px;
+}
+
+.btn_add_attachment, .btn_remove_attachment {
+    text-align: center;
+    position: absolute;
+    right: 190px;
+    margin-top: -22px;
 }

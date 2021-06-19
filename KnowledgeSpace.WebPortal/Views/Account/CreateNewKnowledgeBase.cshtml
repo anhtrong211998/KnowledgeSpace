@@ -69,12 +69,26 @@
                     </div>
                     <div class="form-group" id="attachment_items">
                         <label asp-for="Attachments" class="control-label"></label>
-                        <p><input type="file" name="attachments" /></p>
-                        <a id="btn_add_attachment" href="#">Thêm đính kèm</a>
+                        <div id="render-attachment">
+                            <div class="input-group">
+                                <div class="input-group-area">
+                                    <input type="text" class="form-control txtAttachment" placeholder="Type your attachment"
+                                           name="txtAttachment">
+                                </div>
+                                <div class="input-group-append">
+                                    <button class="btn btn-info btnAttachment" type="button">Browser</button>
+                                </div>
+                                <div class="input-group-append">
+                                    <button class="btn btn-info btn_add_attachment" type="button" id="btn_add_attachment">+</button>
+                                </div>
+                                <p><input type="file" class="selectFile" name="attachments" style="display:none;" /></p>
+                            </div>                            
+                        </div>                                                
                     </div>
                     <div class="form-group">
                         <input type="submit" name="submit" value="Đăng bài" class="btn btn-inverse">
                         <img src="/images/loading.gif" id="contact-loader" alt="Đang xử lý...">
+                        <a class="btn btn-success" href="/my-kbs">Quay lại</a>
                     </div>
                 </div>
                 
