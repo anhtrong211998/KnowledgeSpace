@@ -1,3 +1,5 @@
+using FluentValidation.AspNetCore;
+using KnowledgeSpace.ViewModels.Validators;
 using KnowledgeSpace.WebPortal.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -61,7 +63,8 @@ namespace KnowledgeSpace.WebPortal
                     };
                 });
 
-            var builder = services.AddControllersWithViews();
+            var builder = services.AddControllersWithViews()
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<KnowledgeBaseCreateRequestValidator>());
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             if (environment == Environments.Development)
             {
@@ -102,24 +105,33 @@ namespace KnowledgeSpace.WebPortal
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
-                name: "List By Tag Id",
-                pattern: "/tag/{tagId}",
-                new { controller = "KnowledgeBase", action = "ListByTag" });
+                    name: "My KBs",
+                    pattern: "/my-kbs",
+                    new { controller = "Account", action = "MyKnowledgeBases" });
+                endpoints.MapControllerRoute(
+                    name: "New KB",
+                    pattern: "/new-kb",
+                    new { controller = "Account", action = "CreateNewKnowledgeBase" });
 
                 endpoints.MapControllerRoute(
-                 name: "Search KB",
-                 pattern: "/search",
-                 new { controller = "KnowledgeBase", action = "Search" });
+                    name: "List By Tag Id",
+                    pattern: "/tag/{tagId}",
+                    new { controller = "KnowledgeBase", action = "ListByTag" });
 
                 endpoints.MapControllerRoute(
-                  name: "KnowledgeBaseDetails",
-                  pattern: "/knowledgebase/{seoAlias}-{id}",
-                  new { controller = "KnowledgeBase", action = "Details" });
+                    name: "Search KB",
+                    pattern: "/search",
+                    new { controller = "KnowledgeBase", action = "Search" });
 
                 endpoints.MapControllerRoute(
-                   name: "ListByCategoryId",
-                   pattern: "/category/{categoryAlias}-{id}",
-                   new { controller = "KnowledgeBase", action = "ListByCategoryId" });
+                    name: "KnowledgeBaseDetails",
+                    pattern: "/knowledgebase/{seoAlias}-{id}",
+                    new { controller = "KnowledgeBase", action = "Details" });
+
+                endpoints.MapControllerRoute(
+                    name: "ListByCategoryId",
+                    pattern: "/category/{categoryAlias}-{id}",
+                    new { controller = "KnowledgeBase", action = "ListByCategoryId" });
 
                 endpoints.MapControllerRoute(
                     name: "default",

@@ -15,12 +15,12 @@
     <link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
 
     <!-- Style Sheet-->
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel='stylesheet' id='bootstrap-css-css' href='/css/bootstrap.css?ver=1.0' type='text/css' media='all' />
-    <link rel='stylesheet' id='responsive-css-css' href='/css/responsive.css?ver=1.0' type='text/css' media='all' />
-    <link rel='stylesheet' id='pretty-photo-css-css' href='/js/prettyphoto/prettyPhoto.css?ver=3.1.4' type='text/css' media='all' />
-    <link rel='stylesheet' id='main-css-css' href='/css/main.css?ver=1.0' type='text/css' media='all' />
-    <link rel='stylesheet' id='green-skin-css' href='/css/green-skin.css?ver=1.0' type='text/css' media='all' />
+    <link rel="stylesheet" href="~/css/style.css?ver=1.0" type='text/css' media='all'/>
+    <link rel='stylesheet' id='bootstrap-css-css' href='~/css/bootstrap.css?ver=1.0' type='text/css' media='all' />
+    <link rel='stylesheet' id='responsive-css-css' href='~/css/responsive.css?ver=1.0' type='text/css' media='all' />
+    <link rel='stylesheet' id='pretty-photo-css-css' href='~/js/prettyphoto/prettyPhoto.css?ver=3.1.4' type='text/css' media='all' />
+    <link rel='stylesheet' id='main-css-css' href='~/css/main.css?ver=1.0' type='text/css' media='all' />
+    <link rel='stylesheet' id='green-skin-css' href='~/css/green-skin.css?ver=1.0' type='text/css' media='all' />
 
 </head>
 
@@ -68,6 +68,7 @@
     <script type='text/javascript' src='/js/jquery.validate.min.js'></script>
     <script type='text/javascript' src="/js/jquery-twitterFetcher.js"></script>
     <script type='text/javascript' src='/js/custom.js'></script>
+    <partial name="_ValidationScriptsPartial" />
     @RenderSection("Scripts", required: false)
 </body>
 </html>
