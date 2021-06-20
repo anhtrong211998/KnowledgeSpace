@@ -140,32 +140,20 @@ namespace KnowledgeSpace.BackendServer.Controllers
             if (knowledgeBase == null)
                 return NotFound(new ApiNotFoundResponse($"Cannot found knowledge base with id: {id}"));
 
-            //// VIEW COUNT INCREASE 1
-            knowledgeBase.ViewCount += 1;
-            _context.KnowledgeBases.Update(knowledgeBase);
-            var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                //// GIVE INFO KnowledgeBaseVm (JUST SHOW NEEDED FIELDS)
-                var attachments = await _context.Attachments
-                    .Where(x => x.KnowledgeBaseId == id)
-                    .Select(x => new AttachmentVm()
-                    {
-                        FileName = x.FileName,
-                        FilePath = x.FilePath,
-                        FileSize = x.FileSize,
-                        Id = x.Id,
-                        FileType = x.FileType
-                    }).ToListAsync();
-                var knowledgeBaseVm = CreateKnowledgeBaseVm(knowledgeBase);
-                knowledgeBaseVm.Attachments = attachments;
-
-                return Ok(knowledgeBaseVm);
-            }
-            return BadRequest(new ApiBadRequestResponse($"Increase ViewCount failed"));
-
+            //// GIVE INFO KnowledgeBaseVm (JUST SHOW NEEDED FIELDS)
+            var attachments = await _context.Attachments
+                .Where(x => x.KnowledgeBaseId == id)
+                .Select(x => new AttachmentVm()
+                {
+                    FileName = x.FileName,
+                    FilePath = x.FilePath,
+                    FileSize = x.FileSize,
+                    Id = x.Id,
+                    FileType = x.FileType
+                }).ToListAsync();
+            var knowledgeBaseVm = CreateKnowledgeBaseVm(knowledgeBase);
+            knowledgeBaseVm.Attachments = attachments;
+            return Ok(knowledgeBaseVm);
         }
 
         /// <summary>
@@ -383,9 +371,9 @@ namespace KnowledgeSpace.BackendServer.Controllers
             if (knowledgeBase == null)
             {
                 return NotFound();
-            }    
-            
-            knowledgeBase.ViewCount += 1;                       
+            }
+
+            knowledgeBase.ViewCount += 1;
             _context.KnowledgeBases.Update(knowledgeBase);
             var result = await _context.SaveChangesAsync();
             if (result > 0)
@@ -564,7 +552,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             else
             {
                 knowledgeBase.SeoAlias = request.SeoAlias;
-            }             
+            }
 
             knowledgeBase.Description = request.Description;
 
@@ -583,7 +571,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             if (request.Labels != null)
             {
                 knowledgeBase.Labels = string.Join(',', request.Labels);
-            }               
+            }
         }
         #endregion
 

@@ -20,10 +20,24 @@
     font-size: 20px;
     padding: 14px 10px 10px 10px;
 }
+.field-validation-error {
+    color: red;
+}
 
 .header-wrapper {
     position: fixed;
-    overflow: hidden;
+}
+
+.cke {
+    margin-bottom: 10px !important;
+}
+
+.error {
+    color: red;
+}
+
+.validation-summary-errors {
+    color: red;
 }
 
 .search-area-wrapper .search-area {
@@ -40,42 +54,46 @@
     width: 100%;
 }
 
-    .input-group > div {
-        display: table-cell;
-        vertical-align: middle; /* needed for Safari */
-    }
+.input-group > div {
+    display: table-cell;
+    vertical-align: middle; /* needed for Safari */
+}
 
-.input-group-icon {
+.input-group-append {
     color: #777;
-    padding: 0 12px
+    flex: 0 0 auto;
 }
 
 .input-group-area {
+    flex: 1 0 8em;
     width: 100%;
 }
 
+.input-group .input-group-area .txtAttachment {
+    border: 0;
+    display: block;
+    width: 100%;
+    width: 98%;
+    outline: none !important;
+}
 
 .txtAttachment:focus {
     outline: none !important;
     z-index: 0 !important;
 }
 
-.txtAttachment {
-    width: 98%;
-    position: relative;
-    outline: none !important;
-}
-
 .btnAttachment {
-    text-align: center;
-    position: absolute;
-    right: 224px;
-    margin-top: -22px;
+    margin-top: -12px;
 }
 
 .btn_add_attachment, .btn_remove_attachment {
-    text-align: center;
-    position: absolute;
-    right: 190px;
-    margin-top: -22px;
+    margin-top: -12px;
+}
+
+.form-group .input-xlarge{
+    width: 98%;
+}
+
+.form-group select.input-xlarge {
+    width: 100%;
 }

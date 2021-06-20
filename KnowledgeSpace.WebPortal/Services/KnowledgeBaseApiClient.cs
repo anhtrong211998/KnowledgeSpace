@@ -16,12 +16,9 @@ namespace KnowledgeSpace.WebPortal.Services
 {
     public class KnowledgeBaseApiClient : BaseApiClient, IKnowledgeBaseApiClient
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         public KnowledgeBaseApiClient(IHttpClientFactory httpClientFactory,
-          IConfiguration configuration,
-          IHttpContextAccessor httpContextAccessor) : base(httpClientFactory, configuration, httpContextAccessor)
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor) : base(httpClientFactory, configuration, httpContextAccessor)
         {
         }
 
@@ -73,9 +70,9 @@ namespace KnowledgeSpace.WebPortal.Services
             return await GetListAsync<CommentVm>($"/api/knowledgeBases/{knowledgeBaseId}/comments/tree");
         }
 
-        public async Task<bool> PostComment(CommentCreateRequest request)
+        public async Task<CommentVm> PostComment(CommentCreateRequest request)
         {
-            return await PostAsync($"/api/knowledgeBases/{request.KnowledgeBaseId}/comments", request);
+            return await PostAsync<CommentCreateRequest, CommentVm>($"/api/knowledgeBases/{request.KnowledgeBaseId}/comments", request);
         }
 
         public async Task<bool> PostKnowlegdeBase(KnowledgeBaseCreateRequest request)
@@ -120,6 +117,55 @@ namespace KnowledgeSpace.WebPortal.Services
 
             var response = await client.PostAsync($"/api/knowledgeBases/", requestContent);
             return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> PutKnowlegdeBase(int id, KnowledgeBaseCreateRequest request)
+        {
+            var client = _httpClientFactory.CreateClient();
+
+            client.BaseAddress = new Uri(_configuration["BackendApiUrl"]);
+            using var requestContent = new MultipartFormDataContent();
+
+            if (request.Attachments?.Count > 0)
+            {
+                foreach (var item in request.Attachments)
+                {
+                    byte[] data;
+                    using (var br = new BinaryReader(item.OpenReadStream()))
+                    {
+                        data = br.ReadBytes((int)item.OpenReadStream().Length);
+                    }
+                    ByteArrayContent bytes = new ByteArrayContent(data);
+                    requestContent.Add(bytes, "attachments", item.FileName);
+                }
+            }
+            requestContent.Add(new StringContent(request.CategoryId.ToString()), "categoryId");
+            requestContent.Add(new StringContent(request.Title.ToString()), "title");
+            requestContent.Add(new StringContent(request.Problem.ToString()), "problem");
+            requestContent.Add(new StringContent(request.Note.ToString()), "note");
+            requestContent.Add(new StringContent(request.Description.ToString()), "description");
+            requestContent.Add(new StringContent(request.Environment.ToString()), "environment");
+            requestContent.Add(new StringContent(request.StepToReproduce.ToString()), "stepToReproduce");
+            requestContent.Add(new StringContent(request.ErrorMessage.ToString()), "errorMessage");
+            requestContent.Add(new StringContent(request.Workaround.ToString()), "workaround");
+            if (request.Labels?.Length > 0)
+            {
+                foreach (var label in request.Labels)
+                {
+                    requestContent.Add(new StringContent(label), "labels");
+                }
+            }
+
+            var token = await _httpContextAccessor.HttpContext.GetTokenAsync("access_token");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.PutAsync($"/api/knowledgeBases/{id}", requestContent);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> UpdateViewCount(int id)
+        {
+            return await PutAsync<object, bool>($"/api/knowledgeBases/{id}/view-count", null, false);
         }
     }
 }

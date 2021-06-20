@@ -26,7 +26,7 @@
         <h1 class="post-title"><a href="#">@Model.Detail.Title</a></h1>
 
         <div class="post-meta clearfix">
-            <span class="date">@Model.Detail.CreateDate.ToString("dd/MM/yyyy")</span>
+            <span class="date">@Model.Detail.CreateDate.ToString("dd/MM/yyyy hh:mm")</span>
             <span class="category"><a href="/cat/@Model.Category.SeoAlias-@Model.Category.Id" title="Xem tất cả bài trong @Model.Category.Name">@Model.Category.Name</a></span>
             <span class="comments">@Model.Detail.NumberOfComments.GetValueOrDefault(0).ToString("N0") bình luận</span>
             <span class="like-count">@Model.Detail.NumberOfVotes.GetValueOrDefault(0).ToString("N0")</span>
@@ -117,7 +117,7 @@
 
                 <p class="date">
                     <a href="#">
-                        <time datetime="2013-02-26T13:20:14+00:00">{{createDate}}</time>
+                        <time >{{createDate}}</time>
                     </a>
                 </p>
             </div><!-- end .comment-meta -->
@@ -148,7 +148,7 @@
 
                 <p class="date">
                     <a href="#">
-                        <time datetime="2013-02-26T13:18:47+00:00">{{createDate}} vào lúc 1:18 pm</time>
+                         <time >{{createDate}}</time>
                     </a>
                 </p>
             </div><!-- end .comment-meta -->

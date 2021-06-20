@@ -1,7 +1,7 @@
 ﻿@model KnowledgeSpace.ViewModels.Contents.KnowledgeBaseCreateRequest
 
 @{
-    ViewData["Title"] = "Tạo mới bài đăng";
+    ViewData["Title"] = "Cập nhật bài đăng";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @section scripts{
@@ -14,11 +14,12 @@
 }
 <div class="container">
     <div class="row">
-        <form action="/account/CreateNewKnowledgeBase" method="post" enctype="multipart/form-data" id="frm_new_kb">
+        <form action="/Account/EditKnowledgeBase" method="post" enctype="multipart/form-data" id="frm_edit_kb">
             <div class="span2">
             </div>
             <div class="span6">
                 <div asp-validation-summary="All" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />
             </div>
             <div class="row">
                 <div class="span8" style="padding: 4px; border: 1px solid #dedede;">
@@ -34,7 +35,7 @@
                         <input asp-for="Title" class="required input-xlarge" />
                         <span asp-validation-for="Title" class="text-danger"></span>
                     </div>
-                    
+
                     <div class="form-group">
                         <label asp-for="Problem" class="control-label"></label>
                         <textarea asp-for="Problem" rows="5" id="txt_problem" class="required span8"></textarea>

@@ -5,12 +5,13 @@
             <li><a href="/">Trang chủ</a></li>
             <li>
                 <a href="#">Bài đăng</a>
-                <ul class="sub-menu">
+                <ul class="sub-menu" style="display: none;">
                     @foreach (var item in Model)
                     {
                         <li><a href="/category/@item.SeoAlias-@item.Id">@item.Name</a></li>
                     }
                 </ul>
+                    
             </li>
             <partial name="_LoginPartial" />
         </ul>
