@@ -56,7 +56,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var knowledgeBasevms = await knowledgeBases.Select(u => new KnowledgeBaseQuickVm()
             {
                 Id = u.Id,
-                CategoryId = (int)u.CategoryId,
+                CategoryId = u.CategoryId.Value,
                 Description = u.Description,
                 SeoAlias = u.SeoAlias,
                 Title = u.Title
@@ -101,7 +101,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 .Select(u => new KnowledgeBaseQuickVm()
                 {
                     Id = u.k.Id,
-                    CategoryId = (int)u.k.CategoryId,
+                    CategoryId = u.k.CategoryId.Value,
                     Description = u.k.Description,
                     SeoAlias = u.k.SeoAlias,
                     Title = u.k.Title,
@@ -188,7 +188,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 .Select(u => new KnowledgeBaseQuickVm()
                 {
                     Id = u.k.Id,
-                    CategoryId = (int)u.k.CategoryId,
+                    CategoryId = u.k.CategoryId.Value,
                     Description = u.k.Description,
                     SeoAlias = u.k.SeoAlias,
                     Title = u.k.Title,
@@ -222,7 +222,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 .Select(u => new KnowledgeBaseQuickVm()
                 {
                     Id = u.k.Id,
-                    CategoryId = (int)u.k.CategoryId,
+                    CategoryId = u.k.CategoryId.Value,
                     Description = u.k.Description,
                     SeoAlias = u.k.SeoAlias,
                     Title = u.k.Title,
@@ -369,6 +369,31 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             return BadRequest(new ApiBadRequestResponse($"Delete knowledge base failed"));
         }
+
+        /// <summary>
+        /// UPDATE VIEW COUNT WHEN VIEW DETAIL
+        /// </summary>
+        /// <param name="id">KEY OF KNOWLEDGEBASE</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpPut("{id}/view-count")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdateViewCount(int id)
+        {
+            var knowledgeBase = await _context.KnowledgeBases.FindAsync(id);
+            if (knowledgeBase == null)
+            {
+                return NotFound();
+            }    
+            
+            knowledgeBase.ViewCount += 1;                       
+            _context.KnowledgeBases.Update(knowledgeBase);
+            var result = await _context.SaveChangesAsync();
+            if (result > 0)
+            {
+                return Ok();
+            }
+            return BadRequest();
+        }
         #endregion
 
         #region PRIVATE METHOD
@@ -408,7 +433,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 Id = knowledgeBase.Id,
 
-                CategoryId = (int)knowledgeBase.CategoryId,
+                CategoryId = knowledgeBase.CategoryId.Value,
 
                 Title = knowledgeBase.Title,
 
@@ -532,7 +557,14 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             knowledgeBase.Title = request.Title;
 
-            knowledgeBase.SeoAlias = request.SeoAlias;
+            if (string.IsNullOrEmpty(request.SeoAlias))
+            {
+                knowledgeBase.SeoAlias = TextHelper.ToUnsignString(request.Title);
+            }
+            else
+            {
+                knowledgeBase.SeoAlias = request.SeoAlias;
+            }             
 
             knowledgeBase.Description = request.Description;
 
@@ -548,7 +580,10 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
             knowledgeBase.Note = request.Note;
 
-            knowledgeBase.Labels = string.Join(',', request.Labels);
+            if (request.Labels != null)
+            {
+                knowledgeBase.Labels = string.Join(',', request.Labels);
+            }               
         }
         #endregion
 
@@ -603,7 +638,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 .Select(u => new KnowledgeBaseQuickVm()
                 {
                     Id = u.k.Id,
-                    CategoryId = (int)u.k.CategoryId,
+                    CategoryId = u.k.CategoryId.Value,
                     Description = u.k.Description,
                     SeoAlias = u.k.SeoAlias,
                     Title = u.k.Title,

@@ -4,6 +4,7 @@ using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
+using KnowledgeSpace.ViewModels.Contents;
 using KnowledgeSpace.ViewModels.Systems;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -411,6 +412,51 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 return Ok();
 
             return BadRequest(new ApiBadRequestResponse(result));
+        }
+        #endregion
+
+        #region MANAGEMENT KNOWLEDGE BASE BY USER
+        /// <summary>
+        /// GET KNOWLEDBASE OF CURRENT USER
+        /// </summary>
+        /// <param name="userId">KEY OF USER</param>
+        /// <param name="pageIndex">NEXT PAGE</param>
+        /// <param name="pageSize">NUMBER OF RECORDS PER PAGE</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet("{userId}/knowledgeBases")]
+        public async Task<IActionResult> GetKnowledgeBasesByUserId(string userId, int pageIndex, int pageSize)
+        {
+            var query = from k in _context.KnowledgeBases
+                        join c in _context.Categories on k.CategoryId equals c.Id
+                        where k.OwnerUserId == userId
+                        orderby k.CreateDate descending
+                        select new { k, c };
+
+            var totalRecords = await query.CountAsync();
+
+            var items = await query.Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+               .Select(u => new KnowledgeBaseQuickVm()
+               {
+                   Id = u.k.Id,
+                   CategoryId = u.k.CategoryId.Value,
+                   Description = u.k.Description,
+                   SeoAlias = u.k.SeoAlias,
+                   Title = u.k.Title,
+                   CategoryAlias = u.c.SeoAlias,
+                   CategoryName = u.c.Name,
+                   NumberOfVotes = u.k.NumberOfVotes,
+                   CreateDate = u.k.CreateDate
+               }).ToListAsync();
+
+            var pagination = new Pagination<KnowledgeBaseQuickVm>
+            {
+                Items = items,
+                TotalRecords = totalRecords,
+                PageIndex = pageIndex,
+                PageSize = pageSize
+            };
+            return Ok(pagination);
         }
         #endregion
     }

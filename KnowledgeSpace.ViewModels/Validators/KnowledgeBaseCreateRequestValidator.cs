@@ -10,7 +10,7 @@ namespace KnowledgeSpace.ViewModels.Validators
     {
         public KnowledgeBaseCreateRequestValidator()
         {
-            RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Category is required");
+            RuleFor(x => x.CategoryId).NotNull().WithMessage("Category is required");
 
             RuleFor(x => x.Title).NotEmpty().WithMessage("Title is required");
 

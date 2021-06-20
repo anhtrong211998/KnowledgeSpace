@@ -50,7 +50,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
             var totalRecords = await query.CountAsync();
 
             //// TAKE RECORDS IN THE PAGE (NEXT PAGE) AND GIVE INFORMATIONS TO CommentVm (JUST SHOW FIELD NEEDED)
-            var items = await query.Skip((pageIndex - 1) * pageSize)
+            var items = await query.OrderByDescending(x => x.c.CreateDate)
+                .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .Select(c => new CommentVm()
                 {
@@ -138,7 +139,10 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 201, ELSE RETURN STATUS 400
             if (result > 0)
             {
-                return CreatedAtAction(nameof(GetCommentDetail), new { id = knowledgeBaseId, commentId = comment.Id }, request);
+                return CreatedAtAction(nameof(GetCommentDetail), new { id = knowledgeBaseId, commentId = comment.Id }, new CommentVm()
+                {
+                    Id = comment.Id
+                });
             }
             else
             {

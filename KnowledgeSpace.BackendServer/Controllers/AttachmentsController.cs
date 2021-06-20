@@ -32,7 +32,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     FilePath = c.FilePath,
                     FileSize = c.FileSize,
                     FileType = c.FileType,
-                    KnowledgeBaseId = (int)c.KnowledgeBaseId
+                    KnowledgeBaseId = c.KnowledgeBaseId.Value
                 }).ToListAsync();
 
             return Ok(query);
