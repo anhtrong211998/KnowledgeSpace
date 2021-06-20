@@ -42,8 +42,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// <param name="request">INPUT DATA.</param>
         /// <returns>HTTP STATUS.</returns>
         [HttpPost("{knowledgeBaseId}/votes")]
-        [ApiValidationFilter]
-        public async Task<IActionResult> PostVote(int knowledgeBaseId, [FromBody] VoteCreateRequest request)
+        public async Task<IActionResult> PostVote(int knowledgeBaseId)
         {
             var userId = User.GetUserId();
             //// GET KNOWLEDGE BASE WITH ID, IF NULL RETURN STATUS 400

@@ -97,3 +97,37 @@
 .form-group select.input-xlarge {
     width: 100%;
 }
+
+.hentry .post-meta button {
+    border: none;
+    background: none;
+}
+
+    .hentry .post-meta button#btn_show_report {
+        display: inline;
+        float: right;
+        margin: 0;
+    }
+
+.hentry .post-meta .article-entry {
+    background: #fafafa url("../images/image.png") no-repeat left center;
+    display: inline-block;
+    padding-left: 25px;
+    cursor: pointer;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.hentry .post-meta .article-entry:hover {
+    background: #fafafa url("../images/image.png") no-repeat left center;
+    color: red;
+}
+
+.text-area {
+    width: 97%;
+}
+
+.modal.fade.in{
+    top: 60% !important;
+}

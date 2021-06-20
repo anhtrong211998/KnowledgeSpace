@@ -1,4 +1,5 @@
-﻿using KnowledgeSpace.BackendServer.Helpers;
+﻿using KnowledgeSpace.BackendServer.Extensions;
+using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Contents;
@@ -115,7 +116,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 Content = request.Content,
                 KnowledgeBaseId = knowledgeBaseId,
-                ReportUserId = request.ReportUserId,
+                ReportUserId = User.GetUserId(),
                 IsProcessed = false
             };
 
@@ -140,38 +141,6 @@ namespace KnowledgeSpace.BackendServer.Controllers
             {
                 return BadRequest(new ApiBadRequestResponse($"Create report failed"));
             }
-        }
-
-        /// <summary>
-        /// UPDATE REPORT.
-        /// </summary>
-        /// <param name="reportId">KEY OF REPORT.</param>
-        /// <param name="request">INPUT DATA.</param>
-        /// <returns>HTTP STATUS.</returns>
-        [HttpPut("{knowledgeBaseId}/reports/{reportId}")]
-        [ApiValidationFilter]
-        public async Task<IActionResult> PutReport(int reportId, [FromBody] CommentCreateRequest request)
-        {
-            //// GET REPORT WITH KEY, IF KEY NOT EXIST, RETURN STATUS 404
-            var report = await _context.Reports.FindAsync(reportId);
-            if (report == null)
-                return NotFound(new ApiNotFoundResponse($"Cannot found report with key {reportId}"));
-
-            //// IF REPORT USER DIFFERENT CURRENT USER, RETURN STATUS 403
-            if (report.ReportUserId != User.Identity.Name)
-                return Forbid();
-
-            //// UPDATE INFORMATION AND SAVE CHANGE
-            report.Content = request.Content;
-            _context.Reports.Update(report);
-            var result = await _context.SaveChangesAsync();
-
-            //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 204, ELSE RETURN STATUS 400
-            if (result > 0)
-            {
-                return NoContent();
-            }
-            return BadRequest(new ApiBadRequestResponse($"Update report failed"));
         }
 
         /// <summary>
