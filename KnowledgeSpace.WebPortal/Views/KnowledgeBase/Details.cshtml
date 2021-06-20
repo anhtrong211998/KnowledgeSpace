@@ -17,7 +17,11 @@
 
     <ul class="breadcrumb">
         <li><a href="/">Trang chủ</a><span class="divider">/</span></li>
-        <li><a href="/cat/@Model.Category.SeoAlias-@Model.Category.Id" title="Xem tất cả bài trong @Model.Category.Name">@Model.Category.Name</a> <span class="divider">/</span></li>
+        <li>
+            <a href="/category/@Model.Category.SeoAlias-@Model.Category.Id"
+               title="Xem tất cả bài trong @Model.Category.Name">@Model.Category.Name</a>
+            <span class="divider">/</span>
+        </li>
         <li class="active">@Model.Detail.Title</li>
     </ul>
 
@@ -27,8 +31,13 @@
 
         <div class="post-meta clearfix">
             <span class="date">@Model.Detail.CreateDate.ToString("dd/MM/yyyy hh:mm")</span>
-            <span class="category"><a href="/cat/@Model.Category.SeoAlias-@Model.Category.Id" title="Xem tất cả bài trong @Model.Category.Name">@Model.Category.Name</a></span>
-            <span class="comments">@Model.Detail.NumberOfComments.GetValueOrDefault(0).ToString("N0") bình luận</span>
+            <span class="category">
+                <a href="/category/@Model.Category.SeoAlias-@Model.Category.Id"
+                   title="Xem tất cả bài trong @Model.Category.Name">@Model.Category.Name</a>
+            </span>
+            <span class="comments">
+                @Model.Detail.NumberOfComments.GetValueOrDefault(0).ToString("N0") bình luận
+            </span>
             <span class="like-count">@Model.Detail.NumberOfVotes.GetValueOrDefault(0).ToString("N0")</span>
         </div><!-- end of post meta -->
 
@@ -44,11 +53,13 @@
     </article>
 
     <div class="like-btn">
-        <form id="like-it-form" action="#" method="post">
-            <span class="like-it ">@Model.Detail.NumberOfVotes.GetValueOrDefault(0).ToString("N0")</span>
-            <input type="hidden" name="post_id" value="@Model.Detail.Id">
-            <input type="hidden" name="action" value="like_it">
-        </form>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <form id="frm_vote" action="#" method="post">
+                <input type="hidden" name="knowledgeBaseId" value="@Model.Detail.Id">
+                <span class="like-it">@Model.Detail.NumberOfVotes.GetValueOrDefault(0).ToString("N0")</span>
+            </form>
+        }
 
         <span class="tags">
             <strong>Tags:&nbsp;&nbsp;</strong>

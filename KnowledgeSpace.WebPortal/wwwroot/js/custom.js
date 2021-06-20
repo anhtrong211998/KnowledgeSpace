@@ -5,7 +5,6 @@
 *
 * */
 jQuery(document).ready(function (e) {
-
     $ = jQuery;
 
     /*-----------------------------------------------------------------------------------*/
@@ -21,13 +20,10 @@ jQuery(document).ready(function (e) {
         window.location = $(this).children('a').attr('href');
     });
 
-
     /*-----------------------------------------------------------------------------------*/
     /* CSS Fixes
     /*-----------------------------------------------------------------------------------*/
     //$(".flickr-photos > a:nth-child(3n+3) img").css("marginLeft","0px");
-
-
 
     /*-----------------------------------------------------------------------------------*/
     /* Apply Class on search form widget inputs
@@ -35,20 +31,15 @@ jQuery(document).ready(function (e) {
     $("#searchform #s").addClass("span3 search-query");
     $("#searchform #searchsubmit").addClass("btn");
 
-
-
     /*-----------------------------------------------------------------------------------*/
     /*	Page's Nav
      /*-----------------------------------------------------------------------------------*/
     $(".pages-nav a").addClass("btn");
 
-
-
     /*-----------------------------------------------------------------------------------*/
     /*	Tags Cloud
     /*-----------------------------------------------------------------------------------*/
     $('.tagcloud a').removeAttr('style').addClass('btn btn-mini');
-
 
     /*-----------------------------------------------------------------------------------*/
     /*	Flickr Feed
@@ -60,12 +51,10 @@ jQuery(document).ready(function (e) {
     //								id: '52617155@N08'
     //							},
     //							itemTemplate: '<a href="{{image_b}}" title="{{title}}" data-rel="prettyPhoto[flickrg]"><img src="{{image_s}}" alt="{{title}}" /></a>'
-    //						}, function(data){ 
-
+    //						}, function(data){
     //										$('a[data-rel]').each(function() {
     //											$(this).attr('rel', $(this).data('rel'));
     //										});
-
 
     //										$("a[rel^='prettyPhoto']").prettyPhoto({
     //											deeplinking: false,
@@ -73,7 +62,6 @@ jQuery(document).ready(function (e) {
     //											overlay_gallery: false
     //										});
     //						});
-
 
     /*-----------------------------------------------------------------------------------*/
     /* Pretty Photo Lightbox
@@ -84,20 +72,15 @@ jQuery(document).ready(function (e) {
             social_tools: false
         });
 
-
         $('a[data-rel]').each(function () {
             $(this).attr('rel', $(this).data('rel'));
         });
-
 
         $("a[rel^='prettyPhoto']").prettyPhoto({
             deeplinking: false,
             social_tools: false
         });
     }
-
-
-
 
     /* ---------------------------------------------------- */
     /*	Accordion
@@ -108,8 +91,6 @@ jQuery(document).ready(function (e) {
             $(this).addClass('current').next('dd').slideDown(500).siblings('dd').slideUp(500);
         });
     });
-
-
 
     /* ---------------------------------------------------- */
     /*	Toggle
@@ -124,8 +105,6 @@ jQuery(document).ready(function (e) {
             }
         });
     });
-
-
 
     /*-----------------------------------------------------------------------------------*/
     /*	Scroll to Top
@@ -152,18 +131,13 @@ jQuery(document).ready(function (e) {
         });
     });
 
-
-
     // Twitter Fetcher Target Code
     //twitterFetcher.fetch('353252568291504128', 'twitter_update_list', 2, true, false, true, dateFormatter, false);
-
-
 
     /* ---------------------------------------------------- */
     /*	Tabs
     /* ---------------------------------------------------- */
     $(function () {
-
         var $tabsNav = $('.tabs-nav'),
             $tabsNavLis = $tabsNav.children('li');
 
@@ -182,10 +156,7 @@ jQuery(document).ready(function (e) {
             $this.parent().next().children('.tab-content').stop(true, true).hide().eq(idx).fadeIn();
             e.preventDefault();
         });
-
     });
-
-
 
     /* ---------------------------------------------------- */
     /*  Responsive Tables by ZURB
@@ -211,7 +182,6 @@ jQuery(document).ready(function (e) {
     $(window).load(updateTables);
     $(window).bind("resize", updateTables);
 
-
     function splitTable(original) {
         original.wrap("<div class='table-wrapper' />");
 
@@ -230,24 +200,6 @@ jQuery(document).ready(function (e) {
         original.unwrap();
     }
 
-
-
-    /* ---------------------------------------------------- */
-    /*	Like Button JS
-     /* ---------------------------------------------------- */
-    $('#like-it-form .like-it').click(function () {
-        var likeButton = $(this);
-        var likeHtml = likeButton.html();
-        var likeNum = parseInt(likeHtml, 10);
-        likeNum++;
-        likeButton.html(likeNum);
-
-        //   $('#like-it-form').ajaxSubmit(options);
-    });
-
-
-
-
     /*-----------------------------------------------------------------------------------*/
     /*	FAQs
     /*-----------------------------------------------------------------------------------*/
@@ -255,7 +207,6 @@ jQuery(document).ready(function (e) {
     $('.faq-item').first().addClass('active').find('.faq-answer').slideDown('slow');
 
     $('.faq-question, .faq-icon').click(function (e) {
-
         e.preventDefault();
 
         var $this = $(this);
@@ -267,10 +218,7 @@ jQuery(document).ready(function (e) {
         else {
             $parent.addClass('active').find('.faq-answer').slideDown('slow');
         }
-
     });
-
-
 
     /*-----------------------------------------------------------------------------------*/
     /*	Contact Form 7
@@ -278,14 +226,12 @@ jQuery(document).ready(function (e) {
     $('.wpcf7-textarea').addClass('span6');
     $('.wpcf7-submit').addClass('btn');
 
-
     /*-----------------------------------------------------------------------------------*/
     /*	Search Form Validation
      /*-----------------------------------------------------------------------------------*/
     $('#search-form').validate({
         errorLabelContainer: $("#search-error-container")
     });
-
 
     /*-----------------------------------------------------------------------------------*/
     /*	Responsive Nav
@@ -313,8 +259,6 @@ jQuery(document).ready(function (e) {
         window.location = $(this).val();
     });
 
-
-
     /*----------------------------------------------------------------------------------*/
     /*	Contact Form AJAX validation and submition
     /*  Validation Plugin : http://bassistance.de/jquery-plugins/jquery-plugin-validation/
@@ -341,7 +285,6 @@ jQuery(document).ready(function (e) {
                 $(form).ajaxSubmit(contact_options);
             }
         });
-
     }
 
     /*-----------------------------------------------------------------------------------*/
@@ -350,5 +293,4 @@ jQuery(document).ready(function (e) {
     if (jQuery().liveSearch) {
         jQuery('#s').liveSearch({ url: 'search.php?livesearch=used&s=' });
     }
-
 });

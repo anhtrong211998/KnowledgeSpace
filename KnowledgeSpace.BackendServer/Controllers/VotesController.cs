@@ -1,4 +1,5 @@
-﻿using KnowledgeSpace.BackendServer.Helpers;
+﻿using KnowledgeSpace.BackendServer.Extensions;
+using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models.Entities;
 using KnowledgeSpace.ViewModels.Contents;
 using Microsoft.AspNetCore.Http;
@@ -44,39 +45,43 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [ApiValidationFilter]
         public async Task<IActionResult> PostVote(int knowledgeBaseId, [FromBody] VoteCreateRequest request)
         {
-            //// GET VOTE WITH ID AND  USER ID (KEY), IF KEY EXIST RETURN STATUS 400
-            var vote = await _context.Votes.FindAsync(knowledgeBaseId, request.UserId);
-            if (vote != null)
-                return BadRequest(new ApiBadRequestResponse("This user has been voted for this KB"));
-
-            //// CREATE A CONSTANCE OF VOTE
-            vote = new Vote()
-            {
-                KnowledgeBaseId = knowledgeBaseId,
-                UserId = request.UserId
-            };
-
-            //// INSERT INTO DATABASE
-            _context.Votes.Add(vote);
-
+            var userId = User.GetUserId();
             //// GET KNOWLEDGE BASE WITH ID, IF NULL RETURN STATUS 400
             var knowledgeBase = await _context.KnowledgeBases.FindAsync(knowledgeBaseId);
             if (knowledgeBase == null)
                 return BadRequest(new ApiBadRequestResponse($"Cannot found knowledge base with id {knowledgeBaseId}"));
-            //// UPDATE NUMBER OF VOTES INCREASE 1 AND  SAVE CHANGE
-            knowledgeBase.NumberOfVotes = knowledgeBase.NumberOfVotes.GetValueOrDefault(0) + 1;
-            _context.KnowledgeBases.Update(knowledgeBase);
-            var result = await _context.SaveChangesAsync();
 
-            //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 204, ELSE RETURN STATUS 400
+            var numberOfVotes = await _context.Votes.CountAsync(x => x.KnowledgeBaseId == knowledgeBaseId);
+            //// GET VOTE WITH ID AND  USER ID (KEY), IF KEY EXIST RETURN STATUS 400
+            var vote = await _context.Votes.FindAsync(knowledgeBaseId, userId);
+            if (vote != null)
+            {
+                _context.Votes.Remove(vote);
+                numberOfVotes -= 1;
+            }
+            else
+            {
+                vote = new Vote()
+                {
+                    KnowledgeBaseId = knowledgeBaseId,
+                    UserId = userId
+                };
+                _context.Votes.Add(vote);
+                numberOfVotes += 1;
+            }
+
+            knowledgeBase.NumberOfVotes = numberOfVotes;
+            _context.KnowledgeBases.Update(knowledgeBase);
+
+            var result = await _context.SaveChangesAsync();
             if (result > 0)
             {
-                return NoContent();
+                return Ok(numberOfVotes);
             }
             else
             {
                 return BadRequest(new ApiBadRequestResponse($"Vote failed"));
-            }
+            }           
         }
 
         /// <summary>
