@@ -82,6 +82,8 @@
 
         <ol class="commentlist" id="comment_list">
         </ol>
+
+        <a id="comment-pagination" data-page-index="1" href="#" style="display:none">Xem thêm bình luận</a>
         @if (User.Identity.IsAuthenticated)
         {
             <input type="hidden" id="hid_current_user_id" value="@Model.CurrentUser.Id" />
