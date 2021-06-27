@@ -27,7 +27,13 @@ namespace KnowledgeSpace.WebPortal.Services
 
         Task<List<CommentVm>> GetCommentsTree(int knowledgeBaseId);
 
+        Task<CommentVm> GetCommentDetail(int knowledgeBaseId, int commentId);
+
         Task<CommentVm> PostComment(CommentCreateRequest request);
+
+        Task<bool> PutComment(int commentId, CommentCreateRequest request);
+
+        Task<CommentVm> DeleteComment(int knowledgeBaseId, int commentId);
 
         Task<bool> PostKnowlegdeBase(KnowledgeBaseCreateRequest request);
 
@@ -38,5 +44,7 @@ namespace KnowledgeSpace.WebPortal.Services
         Task<int> PostVote(VoteCreateRequest request);
 
         Task<ReportVm> PostReport(ReportCreateRequest request);
+
+        
     }
 }

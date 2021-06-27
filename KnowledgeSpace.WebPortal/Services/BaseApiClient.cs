@@ -57,6 +57,21 @@ namespace KnowledgeSpace.WebPortal.Services
             return data;
         }
 
+        public async Task<T> DeleteAsync<T>(string url, bool requiredLogin = false)
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(_configuration["BackendApiUrl"]);
+            if (requiredLogin)
+            {
+                var token = await _httpContextAccessor.HttpContext.GetTokenAsync("access_token");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            var response = await client.DeleteAsync(url);
+            var body = await response.Content.ReadAsStringAsync();
+            var data = JsonConvert.DeserializeObject<T>(body);
+            return data;
+        }
+
         public async Task<TResponse> PostAsync<TRequest, TResponse>(string url, TRequest requestContent, bool requiredLogin = true)
         {
             var client = _httpClientFactory.CreateClient();

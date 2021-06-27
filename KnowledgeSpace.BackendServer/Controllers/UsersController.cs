@@ -446,6 +446,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                    CategoryAlias = u.c.SeoAlias,
                    CategoryName = u.c.Name,
                    NumberOfVotes = u.k.NumberOfVotes,
+                   ViewCount = u.k.ViewCount,
                    CreateDate = u.k.CreateDate
                }).ToListAsync();
 

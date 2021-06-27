@@ -98,11 +98,32 @@ namespace KnowledgeSpace.WebPortal.Controllers
             return Ok(data);
         }
 
+        public async Task<IActionResult> GetCommentDetail(int knowledgeBaseId, int commentId)
+        {
+            var data = await _knowledgeBaseApiClient.GetCommentDetail(knowledgeBaseId, commentId);
+            return Ok(data);
+        }
+
+        public async Task<IActionResult> DeleteComment(int knowledgeBaseId, int commentId)
+        {
+            var data = await _knowledgeBaseApiClient.DeleteComment(knowledgeBaseId, commentId);
+            return Ok(data);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddNewComment([FromForm] CommentCreateRequest request)
         {
             var result = await _knowledgeBaseApiClient.PostComment(request);
             if (result != null)
+                return Ok(result);
+            return BadRequest();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditComment(int commentId,[FromForm] CommentCreateRequest request)
+        {
+            var result = await _knowledgeBaseApiClient.PutComment(commentId,request);
+            if (result)
                 return Ok(result);
             return BadRequest();
         }

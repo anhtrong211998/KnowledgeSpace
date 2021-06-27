@@ -70,9 +70,24 @@ namespace KnowledgeSpace.WebPortal.Services
             return await GetListAsync<CommentVm>($"/api/knowledgeBases/{knowledgeBaseId}/comments/tree");
         }
 
+        public async Task<CommentVm> GetCommentDetail(int knowledgeBaseId, int commentId)
+        {
+            return await GetAsync<CommentVm>($"/api/knowledgeBases/{knowledgeBaseId}/comments/{commentId}", true);
+        }
+
         public async Task<CommentVm> PostComment(CommentCreateRequest request)
         {
             return await PostAsync<CommentCreateRequest, CommentVm>($"/api/knowledgeBases/{request.KnowledgeBaseId}/comments", request);
+        }
+
+        public async Task<bool> PutComment(int commentId, CommentCreateRequest request)
+        {
+            return await PutAsync<CommentCreateRequest, bool>($"/api/knowledgeBases/{request.KnowledgeBaseId}/comments/{commentId}", request);
+        }
+
+        public async Task<CommentVm> DeleteComment(int knowledgeBaseId, int commentId)
+        {
+            return await DeleteAsync<CommentVm>($"/api/knowledgeBases/{knowledgeBaseId}/comments/{commentId}", true);
         }
 
         public async Task<bool> PostKnowlegdeBase(KnowledgeBaseCreateRequest request)

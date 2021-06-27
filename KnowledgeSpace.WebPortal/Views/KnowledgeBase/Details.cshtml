@@ -84,6 +84,7 @@
         </ol>
         @if (User.Identity.IsAuthenticated)
         {
+            <input type="hidden" id="hid_current_user_id" value="@Model.CurrentUser.Id" />
             <input type="hidden" id="hid_current_login_name" value="@Model.CurrentUser.FirstName @Model.CurrentUser.LastName" />
             <div id="respond">
 
@@ -130,6 +131,7 @@
                         <a href="#" rel="external nofollow" class="url">{{ownerName}}</a>
                     </cite>
                     - <a class="comment-reply-link" href="#" data-commentid="{{id}}">Trả lời</a>
+                    replace_{{id}}
                 </h5>
 
                 <p class="date">
@@ -161,6 +163,7 @@
                         <a href="#" rel="external nofollow" class="url">{{ownerName}}</a>
                     </cite>
                     - <a class="comment-reply-link" href="#" data-commentid="{{id}}">Trả lời</a>
+                    replace_{{id}}
                 </h5>
 
                 <p class="date">
@@ -187,18 +190,39 @@
     <div id="respond">
         <h3>Trả lời bình luận</h3>
         <form action="/knowledgebase/AddNewComment" method="post" id="frm_reply_comment_{{commentId}}">
-            <input type="hidden" name="knowledgeBaseId" value="@Model.Detail.Id" />
+            <input type="hidden" name="knowledgeBaseId" value="@Model.Detail.Id"/>
             <input type="hidden" name="replyId" value="{{commentId}}" />
             <div>
                 <textarea class="span8" name="content" id="txt_reply_content_{{commentId}}" cols="58" rows="5"></textarea>
             </div>
             <div>
                 <input class="btn" name="submit" type="submit" id="btn_send_reply" value="Trả lời">
+                <button id="btn_cancel_{{commentId}}" class="btn">
+                    <span class="article-entry">Hủy</span>
+                </button>
             </div>
         </form>
     </div>
 </script>
 
+<script id="tmpl_edit_comment" type="x-tmpl-mustache">
+    <div id="respond">
+        <h3>Cập nhật bình luận</h3>
+        <form action="#" method="post" id="frm_edit_comment_{{commentId}}">
+            <input type="hidden" name="knowledgeBaseId" value="@Model.Detail.Id" />
+
+            <div>
+                <textarea class="span8" name="content" id="txt_reply_content_{{commentId}}" cols="58" rows="5">{{content}}</textarea>
+            </div>
+            <div>
+                <input class="btn" name="submit" type="submit" id="btn_send_reply" value="Cập nhật">
+                <button id="btn_cancel_{{commentId}}" class="btn">
+                    <span class="article-entry">Hủy</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</script>
 <!-- Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" data-backdrop="static"
      aria-labelledby="reportModalLabel" aria-hidden="true">
