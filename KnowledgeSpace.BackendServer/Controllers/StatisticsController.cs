@@ -60,10 +60,10 @@ namespace KnowledgeSpace.BackendServer.Controllers
         {
             var data = await _context.Users.Where(x => x.CreateDate.Date.Year == year)
                .GroupBy(x => x.CreateDate.Date.Month)
-               .Select(g => new MonthlyNewKbsVm()
+               .Select(g => new MonthlyNewRegistersVm()
                {
                    Month = g.Key,
-                   NumberOfNewKbs = g.Count()
+                   NumberOfRegisters = g.Count()
                })
                .ToListAsync();
 

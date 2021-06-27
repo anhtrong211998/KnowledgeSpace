@@ -20,6 +20,42 @@ namespace KnowledgeSpace.BackendServer.Controllers
         /// GET ALL REPORTS OF KNOWLEDGE BASE.
         /// </summary>
         /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpGet("{knowledgeBaseId}/reports")]
+        public async Task<IActionResult> GetReports(int? knowledgeBaseId)
+        {
+            //// GET ALL REPORT OF KNOWLEDGE BASE
+            var query = from r in _context.Reports
+                        select new { r};
+            if (knowledgeBaseId.HasValue)
+            {
+                query = query.Where(x => x.r.KnowledgeBaseId == knowledgeBaseId.Value);
+            }
+
+            //// TOTAL RECORDS IS NUMBER OF REPROTS's ROWS
+            var totalRecords = await query.CountAsync();
+
+            //// TAKE RECORDS IN THE PAGE (NEXT PAGE)
+            var items = await query.Select(c => new ReportVm()
+                {
+                    Id = c.r.Id,
+                    Content = c.r.Content,
+                    CreateDate = c.r.CreateDate,
+                    KnowledgeBaseId = c.r.KnowledgeBaseId,
+                    LastModifiedDate = c.r.LastModifiedDate,
+                    IsProcessed = false,
+                    ReportUserId = c.r.ReportUserId,
+                })
+                .ToListAsync();
+
+            return Ok(items);
+        }
+
+
+        /// <summary>
+        /// GET ALL REPORTS OF KNOWLEDGE BASE.
+        /// </summary>
+        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
         /// <param name="filter">KEYWORD SEARCH.</param>
         /// <param name="pageIndex">INDEX OF NEXT PAGE.</param>
         /// <param name="pageSize">NUMBER OF RECORDS IN EACH PAGE.</param>

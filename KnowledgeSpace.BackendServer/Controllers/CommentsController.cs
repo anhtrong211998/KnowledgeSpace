@@ -20,6 +20,41 @@ namespace KnowledgeSpace.BackendServer.Controllers
     {
         #region COMMENT MANAGERMENT
         /// <summary>
+        /// GET COMMENTS OF KNOWLEDGE BASE.
+        /// </summary>
+        /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpGet("{knowledgeBaseId}/comments")]
+        [ClaimRequirement(FunctionCode.CONTENT_COMMENT, CommandCode.VIEW)]
+        public async Task<IActionResult> GetComments(int? knowledgeBaseId)
+        {
+            //// GET ALL COMMENTS OF KNOWLEDGE BASE
+            var query = from c in _context.Comments
+                        select new { c };
+            if (knowledgeBaseId.HasValue)
+            {
+                query = query.Where(x => x.c.KnowledgeBaseId == knowledgeBaseId.Value);
+            }
+
+            //// TOTAL RECORDS EQUAL NUMBER OF COMMENTS's ROWS
+            var totalRecords = await query.CountAsync();
+
+            //// TAKE RECORDS IN THE PAGE (NEXT PAGE) AND GIVE INFORMATIONS TO CommentVm (JUST SHOW FIELD NEEDED)
+            var items = await query.OrderByDescending(x => x.c.CreateDate)
+                .Select(c => new CommentVm()
+                {
+                    Id = c.c.Id,
+                    Content = c.c.Content,
+                    CreateDate = c.c.CreateDate,
+                    KnowledgeBaseId = c.c.KnowledgeBaseId,
+                    LastModifiedDate = c.c.LastModifiedDate,
+                    OwnerUserId = c.c.OwnerUserId
+                })
+                .ToListAsync();
+            return Ok(items);
+        }
+
+        /// <summary>
         /// GET COMMENTS OF KNOWLEDGE BASE WITH FILTER (KEYWORD SEARCH).
         /// </summary>
         /// <param name="knowledgeBaseId">KEY OF KNOWLEDGE BASE.</param>
