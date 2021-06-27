@@ -25,18 +25,20 @@ namespace KnowledgeSpace.BackendServer.Controllers
         private readonly KnowledgeSpaceContext _context;
         private readonly ISequenceService _sequenceService;
         private readonly IStorageService _storageService;
-
+        private readonly ICacheService _cacheService;
         /// <summary>
         /// CONSTRUCTOR CONTROLLER.
         /// </summary>
         /// <param name="context">DbContext.</param>
         public KnowledgeBasesController(KnowledgeSpaceContext context,
             ISequenceService sequenceService,
-            IStorageService storageService)
+            IStorageService storageService,
+            ICacheService cacheService)
         {
             _context = context;
             _sequenceService = sequenceService;
             _storageService = storageService;
+            _cacheService = cacheService;
         }
 
         #region KNOWLEDGE BASE MANAGERMENT
@@ -165,29 +167,36 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetLatestKnowledgeBases(int take)
         {
-            //// GET NUMBER OF RECORDS NEED SHOW ORDER BY CREATEDATE DESC
-            var knowledgeBases = from k in _context.KnowledgeBases
-                                 join c in _context.Categories on k.CategoryId equals c.Id
-                                 orderby k.CreateDate descending
-                                 select new { k, c };
+            var cachedData = await _cacheService.GetAsync<List<KnowledgeBaseQuickVm>>(CacheConstants.LatestKnowledgeBases);
+            if (cachedData == null)
+            {
+                //// GET NUMBER OF RECORDS NEED SHOW ORDER BY CREATEDATE DESC
+                var knowledgeBases = from k in _context.KnowledgeBases
+                                     join c in _context.Categories on k.CategoryId equals c.Id
+                                     orderby k.CreateDate descending
+                                     select new { k, c };
 
-            //// GET INFOMATION OF FIELDS NEEDED SHOW
-            var knowledgeBasevms = await knowledgeBases.Take(take)
-                .Select(u => new KnowledgeBaseQuickVm()
-                {
-                    Id = u.k.Id,
-                    CategoryId = u.k.CategoryId.Value,
-                    Description = u.k.Description,
-                    SeoAlias = u.k.SeoAlias,
-                    Title = u.k.Title,
-                    CategoryAlias = u.c.SeoAlias,
-                    CategoryName = u.c.Name,
-                    ViewCount = u.k.ViewCount,
-                    NumberOfVotes = u.k.NumberOfVotes,
-                    CreateDate = u.k.CreateDate
-                }).ToListAsync();
+                //// GET INFOMATION OF FIELDS NEEDED SHOW
+                var knowledgeBaseVms = await knowledgeBases.Take(take)
+                    .Select(u => new KnowledgeBaseQuickVm()
+                    {
+                        Id = u.k.Id,
+                        CategoryId = u.k.CategoryId.Value,
+                        Description = u.k.Description,
+                        SeoAlias = u.k.SeoAlias,
+                        Title = u.k.Title,
+                        CategoryAlias = u.c.SeoAlias,
+                        CategoryName = u.c.Name,
+                        ViewCount = u.k.ViewCount,
+                        NumberOfVotes = u.k.NumberOfVotes,
+                        CreateDate = u.k.CreateDate
+                    }).ToListAsync();
+                await _cacheService.SetAsync(CacheConstants.LatestKnowledgeBases, knowledgeBaseVms, 2);
+                cachedData = knowledgeBaseVms;
+            }
+                
 
-            return Ok(knowledgeBasevms);
+            return Ok(cachedData);
         }
 
         /// <summary>
@@ -199,29 +208,36 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetPopularKnowledgeBases(int take)
         {
-            //// GET NUMBER OF RECORDS NEED SHOW ORDER BY VIEWCOUNT DESC
-            var knowledgeBases = from k in _context.KnowledgeBases
-                                 join c in _context.Categories on k.CategoryId equals c.Id
-                                 orderby k.ViewCount descending
-                                 select new { k, c };
+            var cachedData = await _cacheService.GetAsync<List<KnowledgeBaseQuickVm>>(CacheConstants.PopularKnowledgeBases);
+            if (cachedData == null)
+            {
+                //// GET NUMBER OF RECORDS NEED SHOW ORDER BY VIEWCOUNT DESC
+                var knowledgeBases = from k in _context.KnowledgeBases
+                                     join c in _context.Categories on k.CategoryId equals c.Id
+                                     orderby k.ViewCount descending
+                                     select new { k, c };
 
-            //// GET INFOMATION OF FIELDS NEEDED SHOW
-            var knowledgeBasevms = await knowledgeBases.Take(take)
-                .Select(u => new KnowledgeBaseQuickVm()
-                {
-                    Id = u.k.Id,
-                    CategoryId = u.k.CategoryId.Value,
-                    Description = u.k.Description,
-                    SeoAlias = u.k.SeoAlias,
-                    Title = u.k.Title,
-                    CategoryAlias = u.c.SeoAlias,
-                    CategoryName = u.c.Name,
-                    ViewCount = u.k.ViewCount,
-                    NumberOfVotes = u.k.NumberOfVotes,
-                    CreateDate = u.k.CreateDate
-                }).ToListAsync();
+                //// GET INFOMATION OF FIELDS NEEDED SHOW
+                var knowledgeBaseVms = await knowledgeBases.Take(take)
+                    .Select(u => new KnowledgeBaseQuickVm()
+                    {
+                        Id = u.k.Id,
+                        CategoryId = u.k.CategoryId.Value,
+                        Description = u.k.Description,
+                        SeoAlias = u.k.SeoAlias,
+                        Title = u.k.Title,
+                        CategoryAlias = u.c.SeoAlias,
+                        CategoryName = u.c.Name,
+                        ViewCount = u.k.ViewCount,
+                        NumberOfVotes = u.k.NumberOfVotes,
+                        CreateDate = u.k.CreateDate
+                    }).ToListAsync();
+                await _cacheService.SetAsync(CacheConstants.PopularKnowledgeBases, knowledgeBaseVms, 24);
+                cachedData = knowledgeBaseVms;
+            }
+                
 
-            return Ok(knowledgeBasevms);
+            return Ok(cachedData);
         }
 
         /// <summary>
@@ -272,6 +288,9 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 201, ELSE RETURN STATUS 400
             if (result > 0)
             {
+                await _cacheService.RemoveAsync(CacheConstants.LatestKnowledgeBases);
+                await _cacheService.RemoveAsync(CacheConstants.PopularKnowledgeBases);
+
                 return CreatedAtAction(nameof(GetById), new { id = knowledgeBase.Id });
             }
             else
@@ -324,6 +343,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 204, ELSE RETURN STATUS 400
             if (result > 0)
             {
+                await _cacheService.RemoveAsync(CacheConstants.LatestKnowledgeBases);
+                await _cacheService.RemoveAsync(CacheConstants.PopularKnowledgeBases);
                 return NoContent();
             }
             return BadRequest(new ApiBadRequestResponse($"Update knowledge base failed"));
@@ -352,6 +373,8 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT AFTER DELETE IS GREATER THAN 0 (TRUE), RETURN STATUS 200, ELSE RETURN STATUS 400
             if (result > 0)
             {
+                await _cacheService.RemoveAsync(CacheConstants.LatestKnowledgeBases);
+                await _cacheService.RemoveAsync(CacheConstants.PopularKnowledgeBases);
                 KnowledgeBaseVm knowledgeBasevm = CreateKnowledgeBaseVm(knowledgeBase);
                 return Ok(knowledgeBasevm);
             }

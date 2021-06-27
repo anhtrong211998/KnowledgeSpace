@@ -39,7 +39,7 @@ namespace KnowledgeSpace.BackendServer
         public void ConfigureServices(IServiceCollection services)
         {
             //// 1. SETUP ENTITY FRAMEWORK
-            services.AddDbContext<KnowledgeSpaceContext>(options =>
+            services.AddDbContextPool<KnowledgeSpaceContext>(options =>
                 options.UseSqlServer(
                         Configuration.GetConnectionString("KnowledgeSpaceConnection")
                         )
@@ -120,7 +120,7 @@ namespace KnowledgeSpace.BackendServer
             services.AddTransient<IEmailSender, EmailSenderService>();
             services.AddTransient<ISequenceService, SequenceService>();
             services.AddTransient<IStorageService, FileStorageService>();
-
+            services.AddTransient<ICacheService, DistributedCacheService>();
             //// VALIDATOR USE FLUENT VALIDATOR LIBRARY
             services.Configure<ApiBehaviorOptions>(options =>
             {
@@ -159,6 +159,13 @@ namespace KnowledgeSpace.BackendServer
                         new List<string>{ "api.knowledgespace" }
                     }
                 });
+            });
+
+            services.AddDistributedSqlServerCache(o =>
+            {
+                o.ConnectionString = Configuration.GetConnectionString("KnowledgeSpaceConnection");
+                o.SchemaName = "dbo";
+                o.TableName = "CacheTable";
             });
         }
 

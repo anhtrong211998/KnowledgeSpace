@@ -3,6 +3,7 @@ using KnowledgeSpace.BackendServer.Constants;
 using KnowledgeSpace.BackendServer.Helpers;
 using KnowledgeSpace.BackendServer.Models;
 using KnowledgeSpace.BackendServer.Models.Entities;
+using KnowledgeSpace.BackendServer.Services;
 using KnowledgeSpace.ViewModels;
 using KnowledgeSpace.ViewModels.Contents;
 using Microsoft.AspNetCore.Authorization;
@@ -19,14 +20,16 @@ namespace KnowledgeSpace.BackendServer.Controllers
     public class CategoriesController : BaseController
     {
         private readonly KnowledgeSpaceContext _context;
-
+        private readonly ICacheService _cacheService;
         /// <summary>
         /// CONSTRUCTOR CONTROLLER.
         /// </summary>
         /// <param name="context"></param>
-        public CategoriesController(KnowledgeSpaceContext context)
+        public CategoriesController(KnowledgeSpaceContext context,
+            ICacheService cacheService)
         {
             _context = context;
+            _cacheService = cacheService;
         }
 
         /// <summary>
@@ -38,13 +41,19 @@ namespace KnowledgeSpace.BackendServer.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetCategories()
         {
-            //// GET ALL CATEGORIES FROM DATABASE
-            var categorys = await _context.Categories.ToListAsync();
+            var cachedData = await _cacheService.GetAsync<List<CategoryVm>>(CacheConstants.Categories);
+            if (cachedData == null)
+            {
+                //// GET ALL CATEGORIES FROM DATABASE
+                var categorys = await _context.Categories.ToListAsync();
 
-            //// TAKE INFORMATIONS OF CATEGORY NEED SHOW AND RETURN STATUS 200
-            var categoryvms = categorys.Select(c => CreateCategoryVm(c)).ToList();
+                //// TAKE INFORMATIONS OF CATEGORY NEED SHOW AND RETURN STATUS 200
+                var categoryVms =  categorys.Select(c => CreateCategoryVm(c)).ToList();
+                await _cacheService.SetAsync(CacheConstants.Categories, categoryVms,2);
+                cachedData = categoryVms;
+            }               
 
-            return Ok(categoryvms);
+            return Ok(cachedData);
         }
 
         /// <summary>
@@ -131,6 +140,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT AFTER INSERT IS GREATER THAN 0 (TRUE), RETURN STATUS 201, ELSE RETURN STATUS 400
             if (result > 0)
             {
+                await _cacheService.RemoveAsync(CacheConstants.Categories);
                 return CreatedAtAction(nameof(GetById), new { id = category.Id }, request);
             }
             else
@@ -176,6 +186,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT AFTER UPDATE IS GREATER THAN 0 (TRUE), RETURN STATUS 204, ELSE RETURN STATUS 400
             if (result > 0)
             {
+                await _cacheService.RemoveAsync(CacheConstants.Categories);
                 return NoContent();
             }
             return BadRequest(new ApiBadRequestResponse("Update category failed"));
@@ -202,6 +213,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// IF RESULT AFTER DELETE IS GREATER THAN 0 (TRUE), RETURN HTTP STATUS 200, ELSE RETURN STATUS 400
             if (result > 0)
             {
+                await _cacheService.RemoveAsync(CacheConstants.Categories);
                 CategoryVm categoryvm = CreateCategoryVm(category);
                 return Ok(categoryvm);
             }
