@@ -27,5 +27,10 @@ namespace KnowledgeSpace.WebPortal.Services
         {
             return await GetListAsync<LabelVm>($"/api/labels/popular/{take}");
         }
+
+        public async Task<List<LabelVm>> GetLabels()
+        {
+            return await GetListAsync<LabelVm>($"/api/labels");
+        }
     }
 }

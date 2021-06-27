@@ -17,13 +17,15 @@ namespace KnowledgeSpace.WebPortal.Controllers
         private readonly IUserApiClient _userApiClient;
         private readonly IKnowledgeBaseApiClient _knowledgeBaseApiClient;
         private readonly ICategoryApiClient _categoryApiClient;
-
+        private readonly ILabelApiClient _labelApiClient;
         public AccountController(IUserApiClient userApiClient,
             IKnowledgeBaseApiClient knowledgeBaseApiClient,
+             ILabelApiClient labelApiClient,
             ICategoryApiClient categoryApiClient)
         {
             _userApiClient = userApiClient;
             _categoryApiClient = categoryApiClient;
+            _labelApiClient = labelApiClient;
             _knowledgeBaseApiClient = knowledgeBaseApiClient;
         }
         public IActionResult SignIn()
@@ -55,6 +57,7 @@ namespace KnowledgeSpace.WebPortal.Controllers
         public async Task<IActionResult> CreateNewKnowledgeBase()
         {
             await SetCategoriesViewBag();
+            await SetLabelsViewBag();
             return View();
         }
 
@@ -79,6 +82,7 @@ namespace KnowledgeSpace.WebPortal.Controllers
         {
             var knowledgeBase = await _knowledgeBaseApiClient.GetKnowledgeBaseDetail(id);
             await SetCategoriesViewBag();
+            await SetLabelsViewBag();
             return View(new KnowledgeBaseCreateRequest()
             {
                 CategoryId = knowledgeBase.CategoryId,
@@ -127,6 +131,19 @@ namespace KnowledgeSpace.WebPortal.Controllers
                 Text = "--Chọn danh mục--"
             });
             ViewBag.Categories = new SelectList(items, "Value", "Text", selectedValue);
+        }
+
+        private async Task SetLabelsViewBag(int? selectedValue = null)
+        {
+            var labels = await _labelApiClient.GetLabels();
+
+            var items = labels.Select(i => new SelectListItem()
+            {
+                Text = i.Name,
+                Value = i.Id.ToString(),
+            }).ToList();
+
+            ViewBag.labels = new SelectList(items, "Value", "Text", selectedValue);
         }
     }
 }

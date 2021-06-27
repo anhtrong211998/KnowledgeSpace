@@ -22,6 +22,35 @@ namespace KnowledgeSpace.BackendServer.Controllers
         }
 
         /// <summary>
+        /// GET ALL LABELS.
+        /// </summary>
+        /// <returns>HTTP STATUS</returns>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<List<LabelVm>> GetLabels()
+        {
+            //// GET LABELS IN KNOWLEDGE BASES
+            var query = from l in _context.Labels
+                        join lik in _context.LabelInKnowledgeBases on l.Id equals lik.LabelId
+                        group new { l.Id, l.Name } by new { l.Id, l.Name } into g
+                        select new
+                        {
+                            g.Key.Id,
+                            g.Key.Name,
+                            Count = g.Count()
+                        };
+
+            //// JUST SHOW NEEDED FIELDS
+            var labels = await query.Select(l => new LabelVm()
+                {
+                    Id = l.Id,
+                    Name = l.Name
+                }).ToListAsync();
+
+            return labels;
+        }
+
+        /// <summary>
         /// GET POPULAR LABELS.
         /// </summary>
         /// <param name="take">NUMBER OF RECORDS NEED SHOW</param>

@@ -8,6 +8,7 @@ namespace KnowledgeSpace.WebPortal.Services
 {
     public interface ILabelApiClient
     {
+        Task<List<LabelVm>> GetLabels();
         Task<List<LabelVm>> GetPopularLabels(int take);
 
         Task<LabelVm> GetLabelById(string labelId);
