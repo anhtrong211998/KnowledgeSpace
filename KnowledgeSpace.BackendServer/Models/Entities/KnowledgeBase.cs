@@ -55,6 +55,8 @@ namespace KnowledgeSpace.BackendServer.Models.Entities
 
         public int? NumberOfReports { get; set; }
 
+        public bool Approved { get; set; } = false;
+
         public int ViewCount { get; set; } = 0;
 
         [ForeignKey("CategoryId")]

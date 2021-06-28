@@ -20,7 +20,7 @@
         $(".tokenizationSelect2").select2({
             placeholder: "Your favourite car", //placeholder
             tags: true,
-            tokenSeparators: ['/', ',', ';', " "]
+            tokenSeparators: [';', " "]
         });
 
         $('#btn_add_attachment').off('click').on('click', function () {
