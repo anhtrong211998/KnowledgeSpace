@@ -68,6 +68,32 @@ namespace KnowledgeSpace.BackendServer.Controllers
         }
 
         /// <summary>
+        /// GET: api/knowledgebases
+        /// GET ALL KNOWLEDGEBASE.
+        /// </summary>
+        /// <returns>HTTP STATUS WITH LIST OF KNOWLEDGE BASE.</returns>
+        [HttpGet("approve")]
+        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.VIEW)]
+        public async Task<IActionResult> GetKnowledgeBasesUnAprove()
+        {
+            //// GET ALL KNOWLEDGE BASE IN DATABASE
+            var knowledgeBases = _context.KnowledgeBases.Where(x => x.Approved == false);
+
+            //// TAKE INFOMATIONS OF KNOWLEDGE BASE NEED SHOW AND RETURN HTTP STATUS 200
+            var knowledgeBasevms = await knowledgeBases.Select(u => new KnowledgeBaseQuickVm()
+            {
+                Id = u.Id,
+                CategoryId = u.CategoryId.Value,
+                Description = u.Description,
+                SeoAlias = u.SeoAlias,
+                Title = u.Title,
+                Approved = u.Approved
+            }).ToListAsync();
+
+            return Ok(knowledgeBasevms);
+        }
+
+        /// <summary>
         /// GET KNOWLEDGE BASE WITH KEYWORD AND PAGINATION.
         /// </summary>
         /// <param name="filter">KEYWORD SEARCH.</param>
@@ -81,6 +107,67 @@ namespace KnowledgeSpace.BackendServer.Controllers
             //// GET ALL KNOWLEDGE BASES OF CATEGORIES
             var query = from k in _context.KnowledgeBases
                         join c in _context.Categories on k.CategoryId equals c.Id
+                        select new { k, c };
+
+            //// IF KEYWORD NOT NULL, GET ALL KNOWLEDGE BASES WHICH CONSTAINS KEYWORD
+            if (!string.IsNullOrEmpty(filter))
+            {
+                query = query.Where(x => x.k.Title.Contains(filter));
+            }
+            //// IF KEYWORD NOT NULL, GET ALL KNOWLEDGE BASES WHICH CONSTAINS CategoryId
+            if (categoryId.HasValue)
+            {
+                query = query.Where(x => x.k.CategoryId == categoryId.Value);
+            }
+
+            //// TOTAL RECORDS EQUAL NUMBER OF KNOWLEDGEBASES's ROWS
+            var totalRecords = await query.CountAsync();
+
+            //// TAKE RECORDS IN THE PAGE (NEXT PAGE)
+            var items = await query.Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(u => new KnowledgeBaseQuickVm()
+                {
+                    Id = u.k.Id,
+                    CategoryId = u.k.CategoryId.Value,
+                    Description = u.k.Description,
+                    SeoAlias = u.k.SeoAlias,
+                    Title = u.k.Title,
+                    CategoryAlias = u.c.SeoAlias,
+                    CategoryName = u.c.Name,
+                    NumberOfVotes = u.k.NumberOfVotes,
+                    CreateDate = u.k.CreateDate,
+                    NumberOfComments = u.k.NumberOfComments
+                })
+                .ToListAsync();
+
+            //// PAGINATION
+            var pagination = new Pagination<KnowledgeBaseQuickVm>
+            {
+                PageSize = pageSize,
+                PageIndex = pageIndex,
+                Items = items,
+                TotalRecords = totalRecords,
+            };
+            return Ok(pagination);
+        }
+
+
+        /// <summary>
+        /// GET KNOWLEDGE BASE UNAPPROVED WITH KEYWORD AND PAGINATION.
+        /// </summary>
+        /// <param name="filter">KEYWORD SEARCH.</param>
+        /// <param name="pageIndex">INDEX OF NEXT PAGE.</param>
+        /// <param name="pageSize">NUMBER OF RECORDS EACH PAGE.</param>
+        /// <returns>HTTP STATUS.</returns>
+        [HttpGet("unapproved")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetKnowledgeBasesApprovedPaging(string filter, int? categoryId, int pageIndex, int pageSize)
+        {
+            //// GET ALL KNOWLEDGE BASES OF CATEGORIES
+            var query = from k in _context.KnowledgeBases
+                        join c in _context.Categories on k.CategoryId equals c.Id
+                        where k.Approved == false
                         select new { k, c };
 
             //// IF KEYWORD NOT NULL, GET ALL KNOWLEDGE BASES WHICH CONSTAINS KEYWORD
@@ -173,6 +260,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 //// GET NUMBER OF RECORDS NEED SHOW ORDER BY CREATEDATE DESC
                 var knowledgeBases = from k in _context.KnowledgeBases
                                      join c in _context.Categories on k.CategoryId equals c.Id
+                                     where k.Approved == true
                                      orderby k.CreateDate descending
                                      select new { k, c };
 
@@ -214,6 +302,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                 //// GET NUMBER OF RECORDS NEED SHOW ORDER BY VIEWCOUNT DESC
                 var knowledgeBases = from k in _context.KnowledgeBases
                                      join c in _context.Categories on k.CategoryId equals c.Id
+                                     where k.Approved == true
                                      orderby k.ViewCount descending
                                      select new { k, c };
 
@@ -405,6 +494,33 @@ namespace KnowledgeSpace.BackendServer.Controllers
             }
             return BadRequest();
         }
+
+        /// <summary>
+        /// UPDATE VIEW COUNT WHEN VIEW DETAIL
+        /// </summary>
+        /// <param name="id">KEY OF KNOWLEDGEBASE</param>
+        /// <returns>HTTP STATUS</returns>
+        [HttpPut("{id}/Approved")]
+        [ClaimRequirement(FunctionCode.CONTENT_KNOWLEDGEBASE, CommandCode.APPROVE)]
+        public async Task<IActionResult> Approved(int id)
+        {
+            var knowledgeBase = await _context.KnowledgeBases.FindAsync(id);
+            if (knowledgeBase == null)
+            {
+                return NotFound();
+            }
+
+            knowledgeBase.Approved = true;
+            _context.KnowledgeBases.Update(knowledgeBase);
+            var result = await _context.SaveChangesAsync();
+            if (result > 0)
+            {
+                await _cacheService.RemoveAsync(CacheConstants.LatestKnowledgeBases);
+                await _cacheService.RemoveAsync(CacheConstants.PopularKnowledgeBases);
+                return Ok();
+            }
+            return BadRequest();
+        }
         #endregion
 
         #region PRIVATE METHOD
@@ -476,7 +592,9 @@ namespace KnowledgeSpace.BackendServer.Controllers
 
                 NumberOfVotes = knowledgeBase.NumberOfVotes,
 
-                NumberOfReports = knowledgeBase.NumberOfReports
+                NumberOfReports = knowledgeBase.NumberOfReports,
+
+                Approved = knowledgeBase.Approved
             };
         }
 

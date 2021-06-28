@@ -11,6 +11,7 @@
             e.preventDefault(); // avoid to execute the actual submit of the form.
             var form = $(this);
             var url = form.attr('action');
+            var knowledgeBaseId = parseInt($('#hid_knowledge_base_id').val());
 
             $.post(url, form.serialize()).done(function (response) {
                 var content = $("#txt_new_comment_content").val();
@@ -22,8 +23,7 @@
                     createDate: formatRelativeTime(),
                     ownerName: $('#hid_current_login_name').val()
                 });
-                $("#txt_new_comment_content").val('');
-                $('#comment_list').prepend(newComment);
+                loadComments(knowledgeBaseId);
                 var numberOfComments = parseInt($('#hid_number_comments').val()) + 1;
                 $('#hid_number_comments').val(numberOfComments);
                 $('#comments-title').text('(' + numberOfComments + ') bình luận');
@@ -173,13 +173,15 @@
             .done(function (response, statusText, xhr) {
             if (xhr.status === 200) {
                 var currentUser = $('#hid_current_user_id').val();
-                console.log(currentUser);
+                var KbOwner = $('#hid_knowledge_base_owner').val();
                 var template = $('#tmpl_comments').html();
                 var childrenTemplate = $('#tmpl_children_comments').html();
                 if (response && response.items) {
                     var html = '';
                     $.each(response.items, function (index, item) {
                         var childrenHtml = '';
+                        var editmode = '';
+                        var editmodechild = '';
                         if (item.children && item.children.items) {
                             $.each(item.children.items, function (childIndex, childItem) {
                                 
@@ -191,14 +193,14 @@
                                     ownerUserId: childItem.ownerUserId
                                 });
                                 if (currentUser != undefined && currentUser === childItem.ownerUserId) {
-                                    var editmode = '';
-                                    editmode += ' - <a class="comment-edit-link" href="#" id="editComment_' + childItem.id + '" data-commentid="' + childItem.id + '">Sửa</a>';
-                                    editmode += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + childItem.id + '" data-commentid="' + childItem.id + '">Xóa</a>';
-                                    childrenHtml = childrenHtml.replace("replace_" + childItem.id, editmode);
+                                    
+                                    editmodechild += ' - <a class="comment-edit-link" href="#" id="editComment_' + childItem.id + '" data-commentid="' + childItem.id + '">Sửa</a>';
+                                    
                                 }
-                                else {
-                                    childrenHtml = childrenHtml.replace("replace_" + childItem.id,"");
+                                else if (KbOwner != undefined){
+                                    editmodechild += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + childItem.id + '" data-commentid="' + childItem.id + '">Xóa</a>';
                                 }
+                                childrenHtml = childrenHtml.replace("replace_" + childItem.id, editmodechild);
                             });
                         }
                         if (response.pageIndex < response.pageCount) {
@@ -215,16 +217,16 @@
                             ownerName: item.ownerName,
                             ownerUserId: item.ownerUserId
                         });
-
+                        
                         if (currentUser != undefined && currentUser === item.ownerUserId) {
-                            var editmode = '';
-                            editmode += ' - <a class="comment-edit-link" href="#" id="editComment_' + item.id + '" data-commentid="' + item.id +'">Sửa</a>';
-                            editmode += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + item.id + '" data-commentid="' + item.id +'">Xóa</a>';
-                            html = html.replace("replace_" + item.id, editmode)
+                           
+                            editmode += ' - <a class="comment-edit-link" href="#" id="editComment_' + item.id + '" data-commentid="' + item.id +'">Sửa</a>';                                                      
                         }
-                        else {
-                            html = html.replace("replace_" + item.id, "");
+                        else if (KbOwner != undefined) {
+                            editmode += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + item.id + '" data-commentid="' + item.id + '">Xóa</a>';
                         }
+                        html = html.replace("replace_" + item.id, editmode)
+
                     });
                     $('#comment_list').append(html);
                     if (response.pageIndex < response.pageCount) {
@@ -245,9 +247,12 @@
             .done(function (response, statusText, xhr) {
                 if (xhr.status === 200) {
                     var currentUser = $('#hid_current_user_id').val();
+                    var KbOwner = $('#hid_knowledge_base_owner').val();
                     var template = $('#tmpl_children_comments').html();
                     if (response && response.items) {
                         var html = '';
+                        var editmode = '';
+                        var editmodechild = '';
                         $.each(response.items, function (index, item) {
                             html += Mustache.render(template, {
                                 id: item.id,
@@ -255,16 +260,16 @@
                                 createDate: formatRelativeTime(item.createDate),
                                 ownerName: item.ownerName
                             });
-
+                            console.log(item.ownerUserId);
                             if (currentUser != undefined && currentUser === item.ownerUserId) {
-                                var editmode = '';
                                 editmode += ' - <a class="comment-edit-link" href="#" id="editComment_' + item.id + '" data-commentid="' + item.id + '">Sửa</a>';
+                                
+                            }
+                            else if (KbOwner != undefined) {
                                 editmode += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + item.id + '" data-commentid="' + item.id + '">Xóa</a>';
-                                html = html.replace("replace_" + childItem.id, editmode);
                             }
-                            else {
-                                html = html.replace("replace_" + item.id, "");
-                            }
+                            
+                            html = html.replace("replace_" + item.id, editmode);
                         });
 
                         
