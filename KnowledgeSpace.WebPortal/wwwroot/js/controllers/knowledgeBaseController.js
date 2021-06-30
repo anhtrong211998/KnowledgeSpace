@@ -195,9 +195,10 @@
                                 if (currentUser != undefined && currentUser === childItem.ownerUserId) {
                                     
                                     editmodechild += ' - <a class="comment-edit-link" href="#" id="editComment_' + childItem.id + '" data-commentid="' + childItem.id + '">Sửa</a>';
+                                    editmodechild += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + childItem.id + '" data-commentid="' + childItem.id + '">Xóa</a>';
                                     
                                 }
-                                else if (KbOwner != undefined){
+                                else if (currentUser != undefined && KbOwner != undefined && currentUser === KbOwner || currentUser != undefined && currentUser === item.ownerUserId) {
                                     editmodechild += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + childItem.id + '" data-commentid="' + childItem.id + '">Xóa</a>';
                                 }
                                 childrenHtml = childrenHtml.replace("replace_" + childItem.id, editmodechild);
@@ -220,9 +221,10 @@
                         
                         if (currentUser != undefined && currentUser === item.ownerUserId) {
                            
-                            editmode += ' - <a class="comment-edit-link" href="#" id="editComment_' + item.id + '" data-commentid="' + item.id +'">Sửa</a>';                                                      
+                            editmode += ' - <a class="comment-edit-link" href="#" id="editComment_' + item.id + '" data-commentid="' + item.id + '">Sửa</a>'; 
+                            editmode += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + item.id + '" data-commentid="' + item.id + '">Xóa</a>';
                         }
-                        else if (KbOwner != undefined) {
+                        else if (currentUser != undefined && KbOwner != undefined && currentUser === KbOwner) {
                             editmode += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + item.id + '" data-commentid="' + item.id + '">Xóa</a>';
                         }
                         html = html.replace("replace_" + item.id, editmode)
@@ -249,6 +251,7 @@
                     var currentUser = $('#hid_current_user_id').val();
                     var KbOwner = $('#hid_knowledge_base_owner').val();
                     var template = $('#tmpl_children_comments').html();
+                    var parent_comment_user = $('#parent_comment_user_' + id).val(); 
                     if (response && response.items) {
                         var html = '';
                         var editmode = '';
@@ -257,15 +260,16 @@
                             html += Mustache.render(template, {
                                 id: item.id,
                                 content: item.content,
+                                ownerUserId: item.ownerUserId,
                                 createDate: formatRelativeTime(item.createDate),
                                 ownerName: item.ownerName
                             });
                             console.log(item.ownerUserId);
                             if (currentUser != undefined && currentUser === item.ownerUserId) {
                                 editmode += ' - <a class="comment-edit-link" href="#" id="editComment_' + item.id + '" data-commentid="' + item.id + '">Sửa</a>';
-                                
+                                editmode += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + item.id + '" data-commentid="' + item.id + '">Xóa</a>';
                             }
-                            else if (KbOwner != undefined) {
+                            else if (currentUser != undefined && KbOwner != undefined && currentUser === KbOwner || currentUser != undefined && currentUser === parent_comment_user) {
                                 editmode += ' - <a class="comment-delete-link" href="#" id="deleteComment_' + item.id + '" data-commentid="' + item.id + '">Xóa</a>';
                             }
                             

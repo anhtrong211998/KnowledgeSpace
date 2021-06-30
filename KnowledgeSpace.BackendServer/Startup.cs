@@ -182,14 +182,14 @@ namespace KnowledgeSpace.BackendServer
             app.UseStaticFiles();
 
             app.UseIdentityServer();
-
+            
             app.UseAuthentication();
-
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();           
 
             app.UseCors(KspSpecificOrigins);
 

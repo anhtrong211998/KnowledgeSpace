@@ -295,6 +295,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     KnowledgeBaseTitle = x.k.Title,
                     OwnerName = x.u.FirstName + " " + x.u.LastName,
                     Content = x.c.Content,
+                    ReplyId = x.c.ReplyId,
                     KnowledgeBaseSeoAlias = x.k.SeoAlias
                 }).ToListAsync();
 
@@ -332,6 +333,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     KnowledgeBaseId = x.c.KnowledgeBaseId,
                     OwnerUserId = x.c.OwnerUserId,
                     Content = x.c.Content,
+                    ReplyId = x.c.ReplyId,
                     OwnerName = x.u.FirstName + " " + x.u.LastName,
                 })
                 .ToListAsync();
@@ -357,6 +359,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                         KnowledgeBaseId = x.c.KnowledgeBaseId,
                         OwnerUserId = x.c.OwnerUserId,
                         Content = x.c.Content,
+                        ReplyId = x.c.ReplyId,
                         OwnerName = x.u.FirstName + " " + x.u.LastName,
                     })
                     .ToListAsync();
@@ -401,6 +404,7 @@ namespace KnowledgeSpace.BackendServer.Controllers
                     KnowledgeBaseId = x.c.KnowledgeBaseId,
                     OwnerUserId = x.c.OwnerUserId,
                     Content = x.c.Content,
+                    ReplyId = x.c.ReplyId,
                     OwnerName = x.u.FirstName + " " + x.u.LastName,
                 })
                 .ToListAsync();
